@@ -1,0 +1,70 @@
+import DailyWork from '#models/daily_work'
+import User from '#models/user'
+import type { HttpContext } from '@adonisjs/core/http'
+import { sendPushNotification } from '#services/notification_service'
+
+export default class AdminDailyWorksController {
+  async index({ response }: HttpContext) {
+    const records = await DailyWork.query()
+      .preload('user')
+      .preload('campus')
+      .preload('approver')
+      .preload('photos')
+      .orderBy('created_at', 'desc')
+
+    return response.ok(records)
+  }
+
+  async monthly({ request, response }: HttpContext) {
+    const qs    = request.qs()
+    const year  = Number(Array.isArray(qs.year)  ? qs.year[0]  : qs.year)
+    const month = Number(Array.isArray(qs.month) ? qs.month[0] : qs.month)
+
+    if (!year || !month) {
+      return response.badRequest({ message: 'year and month are required' })
+    }
+
+    const records = await DailyWork.query()
+      .preload('user')
+      .preload('campus')
+      .preload('approver')
+      .where('year', year)
+      .where('month', month)
+      .orderBy('user_id', 'asc')
+      .orderBy('day', 'asc')
+
+    return response.ok(records)
+  }
+
+  async approve({ auth, params, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const record = await DailyWork.findOrFail(params.id)
+    record.status = 'approved'
+    record.approvedBy = admin.id
+    await record.save()
+
+    const owner = await User.find(record.userId)
+    if (owner?.fcmToken) {
+      const dateStr = `${String(record.day).padStart(2, '0')}/${String(record.month).padStart(2, '0')}/${record.year}`
+      await sendPushNotification(owner.fcmToken, '✅ Daily Work Approved', `Your daily work for ${dateStr} has been approved.`, { type: 'daily_work_user' })
+    }
+
+    return response.ok(record)
+  }
+
+  async reject({ auth, params, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const record = await DailyWork.findOrFail(params.id)
+    record.status = 'rejected'
+    record.approvedBy = admin.id
+    await record.save()
+
+    const owner = await User.find(record.userId)
+    if (owner?.fcmToken) {
+      const dateStr = `${String(record.day).padStart(2, '0')}/${String(record.month).padStart(2, '0')}/${record.year}`
+      await sendPushNotification(owner.fcmToken, '❌ Daily Work Rejected', `Your daily work for ${dateStr} has been rejected.`, { type: 'daily_work_user' })
+    }
+
+    return response.ok(record)
+  }
+}

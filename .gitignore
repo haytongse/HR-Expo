@@ -1,0 +1,16 @@
+# Credentials & secrets
+hr_server/config/push.json
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+
+# Build artifacts
+android/app/.cxx/
+android/.gradle/
+android/build/
+ios/build/
+ios/Pods/
+*.orig.*

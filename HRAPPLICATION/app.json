@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "HRAPPLICATION",
+    "slug": "hrapplication",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "ios": {
+      "bundleIdentifier": "com.hrd.hrapplication",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.hrd.hrapplication"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+current directory: /Users/mac/Projects/HRAPPLICATION/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+/usr/local/opt/ruby/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/mac/Projects/HRAPPLICATION/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20260501-78780-gtvpkv sitelibdir\=./.gem.20260501-78780-gtvpkv clean
+
+current directory: /Users/mac/Projects/HRAPPLICATION/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20260501-78780-gtvpkv sitelibdir\=./.gem.20260501-78780-gtvpkv
+compiling nkf.c
+linking shared-object nkf.bundle
+ld: warning: search path '/usr/local/Cellar/openssl@3/3.4.0/lib' not found
+ld: warning: search path '/usr/local/Cellar/openssl@3/3.4.0/lib' not found
+
+current directory: /Users/mac/Projects/HRAPPLICATION/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20260501-78780-gtvpkv sitelibdir\=./.gem.20260501-78780-gtvpkv install
+/usr/bin/install -c -m 0755 nkf.bundle ./.gem.20260501-78780-gtvpkv
+
+current directory: /Users/mac/Projects/HRAPPLICATION/vendor/bundle/ruby/3.4.0/gems/nkf-0.2.0/ext/nkf
+make DESTDIR\= sitearchdir\=./.gem.20260501-78780-gtvpkv sitelibdir\=./.gem.20260501-78780-gtvpkv clean
