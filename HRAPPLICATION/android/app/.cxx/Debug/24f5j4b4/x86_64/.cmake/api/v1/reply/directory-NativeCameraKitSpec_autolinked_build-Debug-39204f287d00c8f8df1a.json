@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "NativeCameraKitSpec_autolinked_build",
+		"source" : "/Users/microstore/Projects/HRAPPLICATION/node_modules/react-native-camera-kit/android/build/generated/source/codegen/jni"
+	}
+}
