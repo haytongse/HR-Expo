@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import Geolocation from '@react-native-community/geolocation'
-import { Platform, PermissionsAndroid } from 'react-native'
+import * as Location from 'expo-location'
 
 export interface AddressDetail {
   street: string | null
@@ -49,32 +48,25 @@ export const useLocationViewModel = () => {
     latitude: null, longitude: null, accuracy: null, address: EMPTY_ADDRESS, error: null, isLoading: false,
   })
 
-  const requestPermission = async (): Promise<boolean> => {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        { title: 'Location Access', message: 'This app needs your location for check-in', buttonPositive: 'OK' }
-      )
-      return granted === PermissionsAndroid.RESULTS.GRANTED
-    }
-    return true
-  }
-
-  const getCurrentLocation = () => {
+  const getCurrentLocation = async () => {
     setLocation(prev => ({ ...prev, isLoading: true, error: null }))
-    Geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords
-        const address = await reverseGeocode(latitude, longitude)
-        setLocation({ latitude, longitude, accuracy: accuracy ?? null, address, error: null, isLoading: false })
-      },
-      (err) => setLocation(prev => ({ ...prev, error: err.message, isLoading: false })),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 1000 }
-    )
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        setLocation(prev => ({ ...prev, error: 'Location permission denied', isLoading: false }))
+        return
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })
+      const { latitude, longitude, accuracy } = pos.coords
+      const address = await reverseGeocode(latitude, longitude)
+      setLocation({ latitude, longitude, accuracy: accuracy ?? null, address, error: null, isLoading: false })
+    } catch (err: any) {
+      setLocation(prev => ({ ...prev, error: err.message, isLoading: false }))
+    }
   }
 
   useEffect(() => {
-    requestPermission().then(ok => { if (ok) getCurrentLocation() })
+    getCurrentLocation()
   }, [])
 
   return { location, getCurrentLocation }

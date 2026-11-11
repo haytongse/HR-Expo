@@ -17,7 +17,7 @@ import { LeaveType, Announcement, adminService } from '../services/adminService'
 import { SERVER_URL } from '../services/api'
 import { AppAlert, useAlert } from '../components/AppAlert'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import DocumentPicker from 'react-native-document-picker'
+import * as DocumentPicker from 'expo-document-picker'
 import { exportToExcel, importFromExcel, campusTemplate, userTemplate } from '../utils/excelUtils'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -194,9 +194,10 @@ function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) =
 
   const handleImport = async () => {
     try {
-      const result = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.xlsx, DocumentPicker.types.xls] })
+      const result = await DocumentPicker.getDocumentAsync({ type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'] })
+      if (result.canceled) return
       setImporting(true)
-      const filePath = result.uri.replace('file://', '')
+      const filePath = result.assets[0].uri.replace('file://', '')
       const rows = await importFromExcel(filePath)
       let created = 0
       for (const row of rows) {
@@ -208,7 +209,7 @@ function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) =
       await loadCampuses()
       showAlert({ title: 'Import Done', message: `${created} campus(es) imported successfully.`, icon: 'check-circle', iconColor: '#10B981', iconBg: '#D1FAE5', buttons: [{ text: 'OK' }] })
     } catch (e: any) {
-      if (!DocumentPicker.isCancel(e)) showAlert({ title: 'Import Failed', message: e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
+      showAlert({ title: 'Import Failed', message: e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
     } finally { setImporting(false) }
   }
 
@@ -606,9 +607,10 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
 
   const handleImport = async () => {
     try {
-      const result = await DocumentPicker.pickSingle({ type: [DocumentPicker.types.xlsx, DocumentPicker.types.xls] })
+      const result = await DocumentPicker.getDocumentAsync({ type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'] })
+      if (result.canceled) return
       setImporting(true)
-      const filePath = result.uri.replace('file://', '')
+      const filePath = result.assets[0].uri.replace('file://', '')
       const rows = await importFromExcel(filePath)
       let created = 0
       for (const row of rows) {
@@ -620,7 +622,7 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
       await loadUsers()
       showAlert({ title: 'Import Done', message: `${created} user(s) imported successfully.`, icon: 'check-circle', iconColor: '#10B981', iconBg: '#D1FAE5', buttons: [{ text: 'OK' }] })
     } catch (e: any) {
-      if (!DocumentPicker.isCancel(e)) showAlert({ title: 'Import Failed', message: e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
+      showAlert({ title: 'Import Failed', message: e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
     } finally { setImporting(false) }
   }
 
@@ -1001,6 +1003,7 @@ function ShiftsTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminViewMo
           try {
             if (editItem) { await updateShift(editItem.id, data) }
             else { await createShift(data) }
+            await loadShifts()
             setModal(false)
           } catch (e: any) {
             showAlert({ title: 'Error', message: e?.response?.data?.message || e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
@@ -1054,7 +1057,7 @@ function ShiftsTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminViewMo
                 <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
-            <AppInput label="Name" placeholder="e.g. Morning Shift" value={name} onChangeText={setName} leftIcon="bookmark-outline" />
+            <AppInput label="Name" placeholder="e.g. Morning Shift" value={name} onChangeText={setName} leftIcon="bookmark" />
             <TouchableOpacity style={s.dobBtn} onPress={() => { setTempStartDate(startDate ?? new Date()); setShowStart(true) }}>
               <FontAwesome5 iconStyle="solid" name="calendar-alt" size={18} color="#6366F1" />
               <Text style={[s.dobBtnTxt, !startDate && { color: '#94A3B8' }]}>{startDate ? toDateStr(startDate) : 'Start Date'}</Text>
@@ -1226,7 +1229,7 @@ function TimetableTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminVie
                   )}
                 </>
             }
-            <AppInput label="Label" placeholder="e.g. Morning Shift" value={label} onChangeText={setLabel} leftIcon="bookmark-outline" />
+            <AppInput label="Label" placeholder="e.g. Morning Shift" value={label} onChangeText={setLabel} leftIcon="bookmark" />
             <TouchableOpacity style={s.dobBtn} onPress={() => { setTempStart(start); setShowStart(true) }}>
               <FontAwesome5 iconStyle="solid" name="clock" size={18} color="#6366F1" />
               <Text style={s.dobBtnTxt}>{toTimeStr(start)}</Text>

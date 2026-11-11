@@ -6,10 +6,37 @@
     "orientation": "portrait",
     "ios": {
       "bundleIdentifier": "com.hrd.hrapplication",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "package": "com.hrd.hrapplication"
-    }
+    },
+    "plugins": [
+      "expo-document-picker",
+      [
+        "expo-notifications",
+        {
+          "color": "#6366F1",
+          "androidMode": "default"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan QR codes."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to verify campus check-in."
+        }
+      ]
+    ]
   }
 }

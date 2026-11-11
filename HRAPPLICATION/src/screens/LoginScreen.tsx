@@ -78,8 +78,12 @@ export default function LoginScreen({ navigation }: any) {
         setPasswordError('Account inactive. Contact admin.')
       } else if (message) {
         setPasswordError(message)
+      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        setPasswordError('Request timed out. Check your connection.')
+      } else if (!err.response) {
+        setPasswordError(`Network error: ${err.message ?? 'Cannot reach server'}`)
       } else {
-        setPasswordError('Login failed. Please try again.')
+        setPasswordError(`Error ${err.response.status}: ${err.response.data?.message ?? 'Login failed'}`)
       }
     } finally {
       setLoading(false)

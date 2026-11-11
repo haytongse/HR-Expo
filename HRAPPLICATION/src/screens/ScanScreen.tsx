@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
-  ActivityIndicator, StatusBar, Animated, Platform, PermissionsAndroid, useWindowDimensions, Easing,
+  ActivityIndicator, StatusBar, Animated, Platform, useWindowDimensions, Easing,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
 import { useSelector, useDispatch } from 'react-redux'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Camera, CameraType } from 'react-native-camera-kit'
+import { CameraView } from 'expo-camera'
+import * as ExpoLocation from 'expo-location'
 import NetInfo, { NetInfoStateType } from '@react-native-community/netinfo'
 import { useAttendanceViewModel } from '../viewmodels/useAttendanceViewModel'
 import { useLocationViewModel } from '../viewmodels/useLocationViewModel'
@@ -20,27 +21,13 @@ import type { RootState } from '../store'
 import { updateUser } from '../store/authSlice'
 
 async function requestCameraPermission(): Promise<boolean> {
-  if (Platform.OS !== 'android') return true
-  const already = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)
-  if (already) return true
-  const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
-    title: 'Camera Access',
-    message: 'This app needs camera access to scan QR codes',
-    buttonPositive: 'Allow',
-  })
-  return result === PermissionsAndroid.RESULTS.GRANTED
+  const { Camera } = await import('expo-camera')
+  const { status } = await Camera.requestCameraPermissionsAsync()
+  return status === 'granted'
 }
 
 async function requestLocationPermission(): Promise<void> {
-  if (Platform.OS === 'android') {
-    const already = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
-    if (already) return
-    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
-      title: 'Location Access',
-      message: 'Location permission is required to detect WiFi network name',
-      buttonPositive: 'Allow',
-    })
-  }
+  await ExpoLocation.requestForegroundPermissionsAsync()
 }
 
 function extractSsid(state: any): string | null {
@@ -570,16 +557,13 @@ export default function ScanScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
-        <Camera
+        <CameraView
           style={StyleSheet.absoluteFill}
-          showFrame={false}
-          scanBarcode
-          laserColor="transparent"
-          frameColor="transparent"
-          cameraType={CameraType.Back}
-          torchMode={torchOn ? 'on' : 'off'}
-          zoom={zoom}
-          onReadCode={(e: any) => handleScan(e.nativeEvent.codeStringValue)}
+          facing="back"
+          enableTorch={torchOn}
+          zoom={(zoom - 1) / 0.8}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={(e) => handleScan(e.data)}
         />
 
         {/* Dark overlay with cutout */}

@@ -2,8 +2,8 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { navigate } from '../navigation/navigationRef'
 
-// export const SERVER_URL = 'http://220.158.233.141:3336'
-export const SERVER_URL = 'http://192.168.1.21:3336'
+// export const SERVER_URL = 'http://192.168.1.21:3336'
+export const SERVER_URL = 'http://162.243.238.38:3336'
 const BASE_URL = `${SERVER_URL}/api/v1`
 const api = axios.create({
   baseURL: BASE_URL,
@@ -25,8 +25,11 @@ api.interceptors.response.use(
   async (error) => {
     const isAuthEndpoint = error.config?.url?.startsWith('/auth/')
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      await AsyncStorage.multiRemove(['access_token', 'refresh_token'])
-      navigate('Login')
+      try {
+        await AsyncStorage.removeItem('access_token')
+        await AsyncStorage.removeItem('refresh_token')
+        navigate('Login')
+      } catch {}
     }
     return Promise.reject(error)
   }

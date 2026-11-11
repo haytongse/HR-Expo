@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   versionTxt: { fontSize: 12, color: '#CBD5E1', fontWeight: '600' },
 
   // Modal
-  overlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  overlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center' },
   dialog:        { margin: 24, backgroundColor: '#fff', borderRadius: 24, padding: 28, alignItems: 'center' },
   dialogIconWrap:{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   dialogTitle:   { fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 8 },

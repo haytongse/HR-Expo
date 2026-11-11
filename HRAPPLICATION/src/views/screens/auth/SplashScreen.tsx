@@ -1,20 +1,12 @@
 import React, { useEffect } from 'react'
-import { View, Text, StyleSheet, ActivityIndicator, Platform, PermissionsAndroid } from 'react-native'
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native'
 import { useSelector } from 'react-redux'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { RootState } from '../../../store'
-import Geolocation from '@react-native-community/geolocation'
+import * as Location from 'expo-location'
 
 async function requestStartupPermissions() {
-  // Location permission
-  if (Platform.OS === 'android') {
-    await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      { title: 'Location Access', message: 'HR Attendance needs your location to verify check-in at campus.', buttonPositive: 'Allow', buttonNegative: 'Deny' }
-    )
-  } else {
-    Geolocation.requestAuthorization()
-  }
+  await Location.requestForegroundPermissionsAsync()
 }
 
 export default function SplashScreen({ navigation }: any) {
