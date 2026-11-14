@@ -22,6 +22,9 @@ export default class DocumentNumbering extends BaseModel {
   @column()
   declare nextNumber: number
 
+  @column()
+  declare campusId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
