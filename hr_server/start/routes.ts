@@ -31,6 +31,7 @@ const CampusesController = () => import('#controllers/campuses_controller')
 const PublicHolidaysController = () => import('#controllers/public_holidays_controller')
 const UserPermissionsController = () => import('#controllers/user_permissions_controller')
 const DailyWorksController = () => import('#controllers/daily_works_controller')
+const UserNotesController  = () => import('#controllers/user_notes_controller')
 
 router.get('/test', () => {
   return { hello: 'Hello World' }
@@ -107,6 +108,17 @@ router
         router.post('/', [DailyWorksController, 'store'])
       })
       .prefix('daily-works')
+      .use(middleware.auth())
+
+    // User Notes (personal calendar notes)
+    router
+      .group(() => {
+        router.get('/',     [UserNotesController, 'index'])
+        router.post('/',    [UserNotesController, 'store'])
+        router.put('/:id',  [UserNotesController, 'update'])
+        router.delete('/:id', [UserNotesController, 'destroy'])
+      })
+      .prefix('notes')
       .use(middleware.auth())
 
     // Leave Types (read-only for users)

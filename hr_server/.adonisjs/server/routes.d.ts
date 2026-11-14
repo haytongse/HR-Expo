@@ -25,6 +25,10 @@ export type ScannedRoutes = {
     'user_permissions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'daily_works.index': { paramsTuple?: []; params?: {} }
     'daily_works.store': { paramsTuple?: []; params?: {} }
+    'user_notes.index': { paramsTuple?: []; params?: {} }
+    'user_notes.store': { paramsTuple?: []; params?: {} }
+    'user_notes.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'user_notes.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leave_types.index': { paramsTuple?: []; params?: {} }
     'announcements.index': { paramsTuple?: []; params?: {} }
     'announcements.unread_count': { paramsTuple?: []; params?: {} }
@@ -95,6 +99,7 @@ export type ScannedRoutes = {
     'public_holidays.index': { paramsTuple?: []; params?: {} }
     'user_permissions.index': { paramsTuple?: []; params?: {} }
     'daily_works.index': { paramsTuple?: []; params?: {} }
+    'user_notes.index': { paramsTuple?: []; params?: {} }
     'leave_types.index': { paramsTuple?: []; params?: {} }
     'announcements.index': { paramsTuple?: []; params?: {} }
     'announcements.unread_count': { paramsTuple?: []; params?: {} }
@@ -128,6 +133,7 @@ export type ScannedRoutes = {
     'public_holidays.index': { paramsTuple?: []; params?: {} }
     'user_permissions.index': { paramsTuple?: []; params?: {} }
     'daily_works.index': { paramsTuple?: []; params?: {} }
+    'user_notes.index': { paramsTuple?: []; params?: {} }
     'leave_types.index': { paramsTuple?: []; params?: {} }
     'announcements.index': { paramsTuple?: []; params?: {} }
     'announcements.unread_count': { paramsTuple?: []; params?: {} }
@@ -159,6 +165,7 @@ export type ScannedRoutes = {
     'check_ins.store': { paramsTuple?: []; params?: {} }
     'user_permissions.store': { paramsTuple?: []; params?: {} }
     'daily_works.store': { paramsTuple?: []; params?: {} }
+    'user_notes.store': { paramsTuple?: []; params?: {} }
     'announcements.mark_all_read': { paramsTuple?: []; params?: {} }
     'announcements.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_users.store': { paramsTuple?: []; params?: {} }
@@ -178,6 +185,7 @@ export type ScannedRoutes = {
   PUT: {
     'profile.profile.update': { paramsTuple?: []; params?: {} }
     'profile.profile.update_fcm_token': { paramsTuple?: []; params?: {} }
+    'user_notes.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_users.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_timetables.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_shift_schedules.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -192,6 +200,7 @@ export type ScannedRoutes = {
   }
   DELETE: {
     'user_permissions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'user_notes.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_users.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_timetables.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_shift_schedules.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

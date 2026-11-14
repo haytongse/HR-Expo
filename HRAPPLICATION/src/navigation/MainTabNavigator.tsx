@@ -11,16 +11,13 @@ import ScanScreen from '../screens/ScanScreen'
 import ProfileStackNavigator from './ProfileStackNavigator'
 import ManageStackNavigator from './ManageStackNavigator'
 import { RootState } from '../store'
+import { useLanguage } from '../i18n/LanguageContext'
 
 const Tab = createBottomTabNavigator()
 
-// ── Tab config ──────────────────────────────────────────────────────────────
-const TABS = [
-  { name: 'Home',    icon: 'home',   label: 'Home' },
-  { name: 'Scan',    icon: 'qrcode', label: 'Scan' },
-  { name: 'Profile', icon: 'user',   label: 'Profile' },
-  { name: 'Manage',  icon: 'cog',    label: 'Manage'},
-]
+const TAB_ICONS: Record<string, string> = {
+  Home: 'home', Scan: 'qrcode', Profile: 'user', Manage: 'cog',
+}
 
 const TAB_CONTENT_HEIGHT = Platform.OS === 'ios' ? 54 : 60
 const SCAN_SIZE          = Platform.OS === 'ios' ? 64 : 72
@@ -29,9 +26,14 @@ const SCAN_RISE          = Platform.OS === 'ios' ? 20 : 24
 // ── Custom Tab Bar ──────────────────────────────────────────────────────────
 function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets()
+  const { t } = useLanguage()
   const bottomPad = insets.bottom > 0 ? insets.bottom : (Platform.OS === 'android' ? 8 : 0)
   const TAB_BAR_HEIGHT = TAB_CONTENT_HEIGHT + bottomPad
   const scanIconSize = Platform.OS === 'ios' ? 26 : 30
+
+  const TAB_LABELS: Record<string, string> = {
+    Home: t('tab_home'), Scan: t('tab_scan'), Profile: t('tab_profile'), Manage: t('tab_manage'),
+  }
 
   return (
     <View style={[styles.wrapper, { height: TAB_BAR_HEIGHT + SCAN_RISE }]} pointerEvents="box-none">
@@ -47,8 +49,9 @@ function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
       <View style={[styles.tabRow, { height: TAB_BAR_HEIGHT, paddingBottom: bottomPad > 0 ? bottomPad - 10 : 4 }]} pointerEvents="box-none">
         {state.routes.map((route, index) => {
           const isFocused = state.index === index
-          const tabCfg    = TABS.find(t => t.name === route.name)!
           const isScan    = route.name === 'Scan'
+          const tabIcon   = TAB_ICONS[route.name] ?? 'circle'
+          const tabLabel  = TAB_LABELS[route.name] ?? route.name
 
           const onPress = () => {
             const event = navigation.emit({
@@ -103,14 +106,14 @@ function CurvedTabBar({ state, navigation }: BottomTabBarProps) {
             >
               <View style={[styles.iconWrap, isFocused && styles.iconWrapActive]}>
                 <FontAwesome5
-                  name={tabCfg.icon as any}
+                  name={tabIcon as any}
                   iconStyle="solid"
                   size={isFocused ? 18 : 16}
                   color={isFocused ? '#6366F1' : '#94A3B8'}
                 />
               </View>
               <Text style={[styles.label, isFocused && styles.labelActive]}>
-                {tabCfg.label}
+                {tabLabel}
               </Text>
             </TouchableOpacity>
           )

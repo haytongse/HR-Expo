@@ -20,6 +20,7 @@ import { AppAlert, useAlert } from '../components/AppAlert'
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5'
 import type { RootState } from '../store'
 import { updateUser } from '../store/authSlice'
+import { useLanguage } from '../i18n/LanguageContext'
 
 async function requestCameraPermission(): Promise<boolean> {
   const { Camera } = await import('expo-camera')
@@ -96,6 +97,7 @@ const ALERT_TIMEOUT = 4000
 
 function ScanAlert({ message, onDismiss }: { message: string; onDismiss: () => void }) {
   const progress = useRef(new Animated.Value(1)).current
+  const { t } = useLanguage()
 
   useEffect(() => {
     Animated.timing(progress, {
@@ -103,8 +105,8 @@ function ScanAlert({ message, onDismiss }: { message: string; onDismiss: () => v
       duration: ALERT_TIMEOUT,
       useNativeDriver: false,
     }).start()
-    const t = setTimeout(onDismiss, ALERT_TIMEOUT)
-    return () => clearTimeout(t)
+    const timer = setTimeout(onDismiss, ALERT_TIMEOUT)
+    return () => clearTimeout(timer)
   }, [onDismiss, progress])
 
   const isWifi = message.toLowerCase().includes('wifi')
@@ -121,10 +123,10 @@ function ScanAlert({ message, onDismiss }: { message: string; onDismiss: () => v
           </View>
           <Text style={alertStyles.title}>
             {isNotInCampus
-              ? 'Not in Campus'
+              ? t('scan_alert_not_in_campus')
               : message.includes('recognized')
-              ? 'Invalid QR Code'
-              : 'Cannot Check In'}
+              ? t('scan_alert_invalid_qr')
+              : t('scan_alert_cannot')}
           </Text>
           <Text style={alertStyles.body}>{message}</Text>
           <Animated.View
@@ -145,6 +147,7 @@ export default function ScanScreen() {
   const { width: screenW } = useWindowDimensions()
   const frameSize = screenW * 0.62
   const navigation = useNavigation<any>()
+  const { t } = useLanguage()
   const [scanning, setScanning] = useState(false)
   const [torchOn, setTorchOn] = useState(false)
   const scanLineAnim = useRef(new Animated.Value(0)).current
@@ -320,7 +323,7 @@ export default function ScanScreen() {
       })
       setSelectedCampus(null)
       setCheckInError(null)
-      Toast.success(type === 'check_in' ? 'Checked in successfully!' : 'Checked out successfully!')
+      Toast.success(type === 'check_in' ? t('checked_in_success') : t('checked_out_success'))
       loadTodayCheckIns()
       navigation.navigate('Home')
     } catch (err: any) {
@@ -347,14 +350,14 @@ export default function ScanScreen() {
     const type = swStatus.kind === 'open' ? swStatus.scanType : getCheckType()
     const isIn = type === 'check_in'
     showConfirm({
-      title: isIn ? 'Confirm Check In' : 'Confirm Check Out',
-      message: `${isIn ? 'Check in' : 'Check out'} at ${selectedCampus.fullName}?`,
+      title: isIn ? t('confirm_check_in') : t('confirm_check_out'),
+      message: `${isIn ? t('check_in') : t('check_out')} ${t('confirm_at')} ${selectedCampus.fullName}?`,
       icon: isIn ? 'sign-in-alt' : 'sign-out-alt',
       iconColor: isIn ? '#10B981' : '#EF4444',
       iconBg: isIn ? '#D1FAE5' : '#FEE2E2',
       buttons: [
-        { text: 'Cancel', style: 'cancel' },
-        { text: isIn ? 'Check In' : 'Check Out', onPress: doCheckIn },
+        { text: t('btn_cancel'), style: 'cancel' },
+        { text: isIn ? t('btn_check_in') : t('btn_check_out'), onPress: doCheckIn },
       ],
     })
   }
@@ -578,11 +581,11 @@ export default function ScanScreen() {
           </View>
           <View style={styles.overlayBottom}>
             <Text style={styles.scanLabel}>
-              {isCheckIn ? 'Scan to Check In' : 'Scan to Check Out'}
+              {isCheckIn ? t('scan_to_check_in') : t('scan_to_check_out')}
             </Text>
             {swStatus.kind === 'open' && (
               <Text style={[styles.scanLabel, { fontSize: 12, fontWeight: '500', opacity: 0.7 }]}>
-                {swStatus.closesAt && swStatus.closesAt !== '--' ? `Window closes at ${swStatus.closesAt}` : ''}
+                {swStatus.closesAt && swStatus.closesAt !== '--' ? `${t('window_closes_at')} ${swStatus.closesAt}` : ''}
               </Text>
             )}
 
@@ -592,7 +595,7 @@ export default function ScanScreen() {
                 onPress={() => { setScanning(false); setTorchOn(false) }}
               >
                 <FontAwesome5 iconStyle="solid" name="times" size={26} color="#fff" />
-                <Text style={styles.scanControlTxt}>Close</Text>
+                <Text style={styles.scanControlTxt}>{t('scan_close')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -600,7 +603,7 @@ export default function ScanScreen() {
                 onPress={() => setTorchOn(v => !v)}
               >
                 <FontAwesome5 iconStyle="solid" name={torchOn ? 'bolt' : 'bolt'} size={22} color={torchOn ? '#FBBF24' : '#fff'} />
-                <Text style={[styles.scanControlTxt, torchOn && { color: '#FBBF24' }]}>Flash</Text>
+                <Text style={[styles.scanControlTxt, torchOn && { color: '#FBBF24' }]}>{t('scan_flash')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -634,18 +637,18 @@ export default function ScanScreen() {
               color={wifiSsid ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)'}
             />
             <Text style={[styles.topWifiTxt, !wifiSsid && styles.topWifiTxtOff]}>
-              {wifiSsid ?? 'No WiFi'}
+              {wifiSsid ?? t('no_wifi')}
             </Text>
           </View>
           <View style={[styles.typeChip, { backgroundColor: headerIsCheckIn ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)' }]}>
             <FontAwesome5 iconStyle="solid" name={headerIsCheckIn ? 'sign-in-alt' : 'sign-out-alt'} size={13} color={headerIsCheckIn ? '#10B981' : '#EF4444'} />
             <Text style={[styles.typeChipTxt, { color: headerIsCheckIn ? '#10B981' : '#EF4444' }]}>
-              {headerIsCheckIn ? 'Check In' : 'Check Out'}
+              {headerIsCheckIn ? t('check_in') : t('check_out')}
             </Text>
           </View>
         </View>
         {todayCheckIns.length > 0 && (
-          <Text style={styles.scanCountTxt}>{todayCheckIns.length} scan(s) today</Text>
+          <Text style={styles.scanCountTxt}>{todayCheckIns.length} {t('scan_count_today')}</Text>
         )}
       </View>
 
@@ -657,19 +660,19 @@ export default function ScanScreen() {
           <View style={[styles.fc, styles.fcBR, styles.fcLight]} />
           <FontAwesome5 iconStyle="solid" name="qrcode" size={72} color="rgba(255,255,255,0.2)" />
         </View>
-        <Text style={styles.tapLabel}>Tap to Scan QR</Text>
-        <Text style={styles.tapSub}>{headerIsCheckIn ? 'Point at campus QR code to check in' : 'Point at campus QR code to check out'}</Text>
+        <Text style={styles.tapLabel}>{t('tap_to_scan')}</Text>
+        <Text style={styles.tapSub}>{headerIsCheckIn ? t('point_check_in') : t('point_check_out')}</Text>
 
         {!cameraPermitted && (
           <View style={styles.permWarn}>
             <FontAwesome5 iconStyle="solid" name="camera" size={14} color="#EF4444" />
-            <Text style={styles.permWarnTxt}>Camera permission required</Text>
+            <Text style={styles.permWarnTxt}>{t('camera_permission')}</Text>
           </View>
         )}
         {campusesError && (
           <TouchableOpacity style={styles.permWarn} onPress={e => { e.stopPropagation?.(); loadCampuses() }}>
             <FontAwesome5 iconStyle="solid" name="sync" size={14} color="#F59E0B" />
-            <Text style={[styles.permWarnTxt, { color: '#F59E0B' }]}>Could not load campuses — tap to retry</Text>
+            <Text style={[styles.permWarnTxt, { color: '#F59E0B' }]}>{t('campuses_error')}</Text>
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -689,7 +692,7 @@ export default function ScanScreen() {
                     <View style={[styles.wifiStatusChip, wifiOk ? styles.wifiStatusChipOk : styles.wifiStatusChipFail]}>
                       <FontAwesome5 iconStyle="solid" name={wifiOk ? 'wifi' : 'wifi'} size={10} color={wifiOk ? '#10B981' : '#EF4444'} />
                       <Text style={[styles.wifiStatusChipTxt, { color: wifiOk ? '#10B981' : '#EF4444' }]}>
-                        {wifiOk ? 'WiFi OK' : 'Wrong WiFi'}
+                        {wifiOk ? t('campus_wifi_ok') : t('campus_wifi_wrong')}
                       </Text>
                     </View>
                   )}
@@ -697,7 +700,7 @@ export default function ScanScreen() {
                     <View style={[styles.wifiStatusChip, inCampus ? styles.wifiStatusChipOk : styles.wifiStatusChipFail]}>
                       <FontAwesome5 iconStyle="solid" name={inCampus ? 'map-marker-alt' : 'map-marker-alt'} size={10} color={inCampus ? '#10B981' : '#EF4444'} />
                       <Text style={[styles.wifiStatusChipTxt, { color: inCampus ? '#10B981' : '#EF4444' }]}>
-                        {inCampus ? `In Campus` : `Out of Campus`}
+                        {inCampus ? t('campus_in') : t('campus_out')}
                         {distance !== null ? ` · ${formatDistance(distance)}` : ''}
                       </Text>
                     </View>
@@ -738,7 +741,7 @@ export default function ScanScreen() {
             ) : (
               <View style={styles.locationRow}>
                 <FontAwesome5 iconStyle="solid" name="location-arrow" size={13} color="#94A3B8" />
-                <Text style={[styles.locationTxt, { color: '#94A3B8' }]}>Fetching location…</Text>
+                <Text style={[styles.locationTxt, { color: '#94A3B8' }]}>{t('fetching_location')}</Text>
               </View>
             )}
 
@@ -746,8 +749,8 @@ export default function ScanScreen() {
               <View style={[styles.shiftRow, { backgroundColor: 'rgba(99,102,241,0.10)' }]}>
                 <FontAwesome5 iconStyle="solid" name="check-double" size={13} color="#818CF8" />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.shiftName, { color: '#A5B4FC' }]}>No Check In / Out Required</Text>
-                  <Text style={[styles.shiftTime, { color: 'rgba(165,180,252,0.7)' }]}>Attendance is not required for your account</Text>
+                  <Text style={[styles.shiftName, { color: '#A5B4FC' }]}>{t('shift_exempt')}</Text>
+                  <Text style={[styles.shiftTime, { color: 'rgba(165,180,252,0.7)' }]}>{t('shift_exempt_sub')}</Text>
                 </View>
               </View>
             )}
@@ -755,8 +758,8 @@ export default function ScanScreen() {
               <View style={[styles.shiftRow, { backgroundColor: 'rgba(239,68,68,0.08)' }]}>
                 <FontAwesome5 iconStyle="solid" name="exclamation-circle" size={13} color="#EF4444" />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.shiftName, { color: '#FCA5A5' }]}>No shift assigned</Text>
-                  <Text style={[styles.shiftTime, { color: 'rgba(252,165,165,0.7)' }]}>Contact admin to assign a shift</Text>
+                  <Text style={[styles.shiftName, { color: '#FCA5A5' }]}>{t('shift_no_shift')}</Text>
+                  <Text style={[styles.shiftTime, { color: 'rgba(252,165,165,0.7)' }]}>{t('shift_no_shift_sub')}</Text>
                 </View>
               </View>
             )}
@@ -764,8 +767,8 @@ export default function ScanScreen() {
               <View style={[styles.shiftRow, { backgroundColor: 'rgba(239,68,68,0.08)' }]}>
                 <FontAwesome5 iconStyle="solid" name="calendar-alt" size={13} color="#EF4444" />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.shiftName, { color: '#FCA5A5' }]}>No schedule for today</Text>
-                  <Text style={[styles.shiftTime, { color: 'rgba(252,165,165,0.7)' }]}>No timetable entry found for today</Text>
+                  <Text style={[styles.shiftName, { color: '#FCA5A5' }]}>{t('shift_no_schedule')}</Text>
+                  <Text style={[styles.shiftTime, { color: 'rgba(252,165,165,0.7)' }]}>{t('shift_no_schedule_sub')}</Text>
                 </View>
               </View>
             )}
@@ -773,9 +776,9 @@ export default function ScanScreen() {
               <View style={[styles.shiftRow, { backgroundColor: 'rgba(16,185,129,0.10)' }]}>
                 <FontAwesome5 iconStyle="solid" name="check-circle" size={13} color="#10B981" />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.shiftName, { color: '#6EE7B7' }]}>All {swStatus.total} scans completed for today</Text>
+                  <Text style={[styles.shiftName, { color: '#6EE7B7' }]}>{t('shift_done_all')} {swStatus.total} {t('shift_done_scans')}</Text>
                   {swStatus.nextAt && (
-                    <Text style={[styles.shiftTime, { color: 'rgba(110,231,183,0.7)' }]}>Next scan opens at {swStatus.nextAt}</Text>
+                    <Text style={[styles.shiftTime, { color: 'rgba(110,231,183,0.7)' }]}>{t('shift_next_scan_at')} {swStatus.nextAt}</Text>
                   )}
                 </View>
               </View>

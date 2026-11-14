@@ -8,10 +8,7 @@ import { useNavigation } from '@react-navigation/native'
 import { useAuthViewModel } from '../viewmodels/useAuthViewModel'
 import { attendanceService } from '../services/attendanceService'
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const DAY_SHORT   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+import { useLanguage } from '../i18n/LanguageContext'
 
 // ─── Table layout (mirrors admin CheckInsScreen) ──────────────────────────────
 const COL_NO      = 28
@@ -36,6 +33,18 @@ export default function MyCheckInsScreen() {
   const insets     = useSafeAreaInsets()
   const navigation = useNavigation<any>()
   const { user }   = useAuthViewModel()
+  const { t }      = useLanguage()
+
+  const MONTH_NAMES = [
+    t('notes_month_jan'), t('notes_month_feb'), t('notes_month_mar'),
+    t('notes_month_apr'), t('notes_month_may'), t('notes_month_jun'),
+    t('notes_month_jul'), t('notes_month_aug'), t('notes_month_sep'),
+    t('notes_month_oct'), t('notes_month_nov'), t('notes_month_dec'),
+  ]
+  const DAY_SHORT = [
+    t('notes_day_sun'), t('notes_day_mon'), t('notes_day_tue'), t('notes_day_wed'),
+    t('notes_day_thu'), t('notes_day_fri'), t('notes_day_sat'),
+  ]
 
   const now = new Date()
   const [year,  setYear]            = useState(now.getFullYear())
@@ -132,16 +141,16 @@ export default function MyCheckInsScreen() {
   // ── Table header ─────────────────────────────────────────────────────────
   const TableHeader = () => (
     <View style={[styles.tableHeader, { width: TABLE_WIDTH }]}>
-      <Text style={[styles.th, { width: COL_NO }]}>#</Text>
-      <Text style={[styles.th, { width: COL_DATE }]}>Date</Text>
-      <Text style={[styles.th, { width: COL_PERIOD }]}>Shift</Text>
+      <Text style={[styles.th, { width: COL_NO }]}>{t('col_no')}</Text>
+      <Text style={[styles.th, { width: COL_DATE }]}>{t('col_date')}</Text>
+      <Text style={[styles.th, { width: COL_PERIOD }]}>{t('col_period')}</Text>
       {Array.from({ length: MAX_PAIRS }, (_, p) => (
         <React.Fragment key={p}>
           <Text style={[styles.th, { width: COL_TIME, color: '#10B981' }]}>
-            {p === 0 ? 'Check In' : `In ${p + 1}`}
+            {p === 0 ? t('check_in') : `${t('check_in')} ${p + 1}`}
           </Text>
           <Text style={[styles.th, { width: COL_TIME, color: '#EF4444' }]}>
-            {p === 0 ? 'Check Out' : `Out ${p + 1}`}
+            {p === 0 ? t('check_out') : `${t('check_out')} ${p + 1}`}
           </Text>
         </React.Fragment>
       ))}
@@ -149,8 +158,8 @@ export default function MyCheckInsScreen() {
   )
 
   const STATUS_STYLE: Record<string, { bg: string; txt: string; label: string }> = {
-    weekend:   { bg: '#FEE2E2', txt: '#EF4444', label: 'Weekend' },
-    no_record: { bg: '#FEF3C7', txt: '#F59E0B', label: 'No Record' },
+    weekend:   { bg: '#FEE2E2', txt: '#EF4444', label: t('badge_weekend') },
+    no_record: { bg: '#FEF3C7', txt: '#F59E0B', label: t('badge_no_record') },
     future:    { bg: '#F8FAFC', txt: '#CBD5E1', label: '—' },
   }
 
@@ -167,7 +176,7 @@ export default function MyCheckInsScreen() {
             <FontAwesome5 iconStyle="solid" name="arrow-left" size={22} color="#fff" />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.headerTitle}>My Check-ins</Text>
+            <Text style={styles.headerTitle}>{t('my_checkins_title')}</Text>
             <Text style={styles.headerSub}>{campusName || (user?.email ?? '')}</Text>
           </View>
         </View>
@@ -204,16 +213,16 @@ export default function MyCheckInsScreen() {
         <View style={styles.pillsRow}>
           <View style={[styles.pill, { backgroundColor: 'rgba(16,185,129,0.2)' }]}>
             <FontAwesome5 iconStyle="solid" name="sign-in-alt" size={13} color="#10B981" />
-            <Text style={[styles.pillTxt, { color: '#10B981' }]}>{presentDays} Days Present</Text>
+            <Text style={[styles.pillTxt, { color: '#10B981' }]}>{presentDays} {t('stat_check_in')}</Text>
           </View>
           <View style={[styles.pill, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
             <FontAwesome5 iconStyle="solid" name="qrcode" size={13} color="#fff" />
-            <Text style={[styles.pillTxt, { color: '#fff' }]}>{totalScans} Scans</Text>
+            <Text style={[styles.pillTxt, { color: '#fff' }]}>{totalScans} {t('stat_scans')}</Text>
           </View>
           {noCheckOut > 0 && (
             <View style={[styles.pill, { backgroundColor: 'rgba(239,68,68,0.2)' }]}>
               <FontAwesome5 iconStyle="solid" name="exclamation-circle" size={13} color="#FCA5A5" />
-              <Text style={[styles.pillTxt, { color: '#FCA5A5' }]}>{noCheckOut} No Check-out</Text>
+              <Text style={[styles.pillTxt, { color: '#FCA5A5' }]}>{noCheckOut} {t('badge_no_record')}</Text>
             </View>
           )}
         </View>
@@ -334,7 +343,7 @@ export default function MyCheckInsScreen() {
       <Modal visible={showMonthPicker} transparent animationType="fade" onRequestClose={() => setShowMonthPicker(false)}>
         <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPress={() => setShowMonthPicker(false)}>
           <View style={styles.pickerCard} onStartShouldSetResponder={() => true}>
-            <Text style={styles.pickerTitle}>Select Month</Text>
+            <Text style={styles.pickerTitle}>{t('notes_select_month')}</Text>
 
             <View style={styles.pickerYearRow}>
               <TouchableOpacity style={styles.pickerArrow} onPress={() => setYear(y => y - 1)}>
@@ -371,7 +380,7 @@ export default function MyCheckInsScreen() {
             </View>
 
             <TouchableOpacity style={styles.pickerClose} onPress={() => setShowMonthPicker(false)}>
-              <Text style={styles.pickerCloseTxt}>Close</Text>
+              <Text style={styles.pickerCloseTxt}>{t('notes_close')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

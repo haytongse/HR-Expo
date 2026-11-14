@@ -7,6 +7,7 @@ import NetInfo from '@react-native-community/netinfo'
 import { store, persistor } from './src/store'
 import AppNavigator from './src/navigation/AppNavigator'
 import { ToastContainer } from './src/components/Toast'
+import { LanguageProvider } from './src/i18n/LanguageContext'
 
 LogBox.ignoreLogs(['InteractionManager has been deprecated'])
 
@@ -33,13 +34,15 @@ export default function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <View style={{ flex: 1 }}>
-            <AppNavigator />
-            <NetworkBanner />
-            <ToastContainer />
-          </View>
-        </GestureHandlerRootView>
+        <LanguageProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <View style={{ flex: 1 }}>
+              <AppNavigator />
+              <NetworkBanner />
+              <ToastContainer />
+            </View>
+          </GestureHandlerRootView>
+        </LanguageProvider>
       </PersistGate>
     </Provider>
   )

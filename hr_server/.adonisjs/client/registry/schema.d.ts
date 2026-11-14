@@ -259,6 +259,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/daily_works_controller').default['store']>>>
     }
   }
+  'user_notes.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/notes'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['index']>>>
+    }
+  }
+  'user_notes.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/notes'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['store']>>>
+    }
+  }
+  'user_notes.update': {
+    methods: ["PUT"]
+    pattern: '/api/v1/notes/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['update']>>>
+    }
+  }
+  'user_notes.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/notes/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/user_notes_controller').default['destroy']>>>
+    }
+  }
   'leave_types.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/leave-types'

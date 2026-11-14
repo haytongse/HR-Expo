@@ -5,6 +5,7 @@ import ProfileScreen from '../screens/ProfileScreen'
 import MyLeaveScreen from '../screens/MyLeaveScreen'
 import DailyWorkScreen from '../screens/DailyWorkScreen'
 import MyCheckInsScreen from '../screens/MyCheckInsScreen'
+import MyNotesScreen from '../screens/MyNotesScreen'
 const Stack = createStackNavigator()
 
 export default function ProfileStackNavigator() {
@@ -15,6 +16,7 @@ export default function ProfileStackNavigator() {
         <Stack.Screen name="MyLeave" component={MyLeaveScreen} />
         <Stack.Screen name="DailyWork" component={DailyWorkScreen} />
         <Stack.Screen name="MyCheckIns" component={MyCheckInsScreen} />
+        <Stack.Screen name="MyNotes" component={MyNotesScreen} />
       </Stack.Navigator>
     </SafeAreaProvider>
   )

@@ -28,4 +28,5 @@ export const controllers = {
   Profile: () => import('#controllers/profile_controller'),
   PublicHolidays: () => import('#controllers/public_holidays_controller'),
   UserPermissions: () => import('#controllers/user_permissions_controller'),
+  UserNotes: () => import('#controllers/user_notes_controller'),
 }

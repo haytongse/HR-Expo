@@ -43,6 +43,12 @@ export interface ApiDefinition {
     index: typeof routes['daily_works.index']
     store: typeof routes['daily_works.store']
   }
+  userNotes: {
+    index: typeof routes['user_notes.index']
+    store: typeof routes['user_notes.store']
+    update: typeof routes['user_notes.update']
+    destroy: typeof routes['user_notes.destroy']
+  }
   leaveTypes: {
     index: typeof routes['leave_types.index']
   }

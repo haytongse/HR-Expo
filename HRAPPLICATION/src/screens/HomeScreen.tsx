@@ -13,6 +13,7 @@ import { useAppPermissions } from '../hooks/useAppPermissions'
 import PermissionsBanner from '../components/PermissionsBanner'
 import { SERVER_URL } from '../services/api'
 import { AttendanceSummary, Campus, UserPermission } from '../models'
+import { useLanguage } from '../i18n/LanguageContext'
 
 function extractSsid(state: any): string | null {
   if (state.type !== NetInfoStateType.wifi) return null
@@ -23,15 +24,11 @@ function extractSsid(state: any): string | null {
   return ssid || null
 }
 
-function greeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
-}
-
-function formatDate() {
-  return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+const KH_MONTHS = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ']
+const KH_DAYS   = ['អាទិត្យ','ចន្ទ','អង្គារ','ពុធ','ព្រហស្បតិ៍','សុក្រ','សៅរ៍']
+function formatDateKh() {
+  const d = new Date()
+  return `${KH_DAYS[d.getDay()]} ទី${d.getDate()} ខែ${KH_MONTHS[d.getMonth()]} ឆ្នាំ${d.getFullYear()}`
 }
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -82,6 +79,7 @@ const DW_STATUS: Record<string, { bg: string; text: string; icon: string }> = {
 
 export default function HomeScreen() {
   const { user } = useSelector((s: RootState) => s.auth)
+  const { t, language, setLanguage } = useLanguage()
   const navigation = useNavigation<any>()
   const { todayCheckIns, isLoading, loadTodayCheckIns } = useAttendanceViewModel()
   const [monthly, setMonthly]       = useState<MonthlySummary | null>(null)
@@ -244,15 +242,43 @@ export default function HomeScreen() {
       {/* ── Fixed App Bar ── */}
       <View style={styles.appBar}>
         <View style={styles.appBarInner}>
+          {/* Avatar — image if set, initials fallback */}
+          {(user as any)?.profilePicture ? (
+            <Image
+              source={{ uri: `${SERVER_URL}${(user as any).profilePicture}` }}
+              style={styles.avatarImg}
+            />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarTxt}>{user?.initials || '?'}</Text>
+            </View>
+          )}
           <View style={{ flex: 1 }}>
-            <Text style={styles.greeting}>{greeting()},</Text>
-            <Text style={styles.name} numberOfLines={1}>{user?.fullName || user?.email || 'User'}</Text>
+            <Text style={styles.greeting} numberOfLines={1}>
+              {language === 'kh'
+                ? t(new Date().getHours() < 12 ? 'greeting_morning' : new Date().getHours() < 17 ? 'greeting_afternoon' : 'greeting_evening')
+                : (new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening')
+              },{' '}
+              <Text style={styles.name}>{user?.fullName || user?.email || 'User'}</Text>
+            </Text>
             <View style={styles.datePill}>
               <FontAwesome5 iconStyle="solid" name="calendar-alt" size={12} color="rgba(255,255,255,0.7)" />
-              <Text style={styles.dateText}>{formatDate()}</Text>
+              <Text style={styles.dateText}>
+                {language === 'kh'
+                  ? formatDateKh()
+                  : new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+                }
+              </Text>
             </View>
           </View>
           <View style={styles.appBarRight}>
+            <TouchableOpacity
+              style={styles.langBtn}
+              onPress={() => setLanguage(language === 'en' ? 'kh' : 'en')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.langBtnFlag}>{language === 'en' ? '🇰🇭' : '🇺🇸'}</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn} onPress={openNotifications}>
               <FontAwesome5 iconStyle="solid" name="bell" size={20} color="#fff" />
               {unreadCount > 0 && (
@@ -267,7 +293,7 @@ export default function HomeScreen() {
         <View style={[styles.statusPill, isCheckedIn ? styles.statusPillIn : styles.statusPillOut]}>
           <View style={[styles.statusDot, { backgroundColor: isCheckedIn ? '#10B981' : '#F59E0B' }]} />
           <Text style={[styles.statusPillTxt, { color: isCheckedIn ? '#10B981' : '#F59E0B' }]}>
-            {isCheckedIn ? 'Checked In Today' : 'Not Yet Checked In'}
+            {isCheckedIn ? t('status_checked_in') : t('status_not_checked')}
           </Text>
         </View>
       </View>
@@ -293,11 +319,11 @@ export default function HomeScreen() {
             <View style={styles.wifiBanner}>
               <FontAwesome5 iconStyle="solid" name="wifi" size={16} color="#92400E" />
               <View style={{ flex: 1 }}>
-                <Text style={styles.wifiBannerTitle}>No WiFi Connected</Text>
+                <Text style={styles.wifiBannerTitle}>{t('wifi_no_connection')}</Text>
                 <Text style={styles.wifiBannerSub}>
                   {campusHasWifi
-                    ? `Connect to: ${userCampus!.wifis.map(w => `"${w.wifiName.trim()}"`).join(', ')}`
-                    : 'You are not connected to any WiFi network'}
+                    ? `${t('wifi_connect_to')}${userCampus!.wifis.map(w => `"${w.wifiName.trim()}"`).join(', ')}`
+                    : t('wifi_no_connection_sub')}
                 </Text>
               </View>
             </View>
@@ -310,9 +336,9 @@ export default function HomeScreen() {
             <View style={styles.wifiBanner}>
               <FontAwesome5 iconStyle="solid" name="wifi" size={16} color="#92400E" />
               <View style={{ flex: 1 }}>
-                <Text style={styles.wifiBannerTitle}>Not on Campus WiFi</Text>
+                <Text style={styles.wifiBannerTitle}>{t('wifi_wrong')}</Text>
                 <Text style={styles.wifiBannerSub}>
-                  Connect to: {userCampus!.wifis.map(w => `"${w.wifiName.trim()}"`).join(', ')}
+                  {t('wifi_connect_to')}{userCampus!.wifis.map(w => `"${w.wifiName.trim()}"`).join(', ')}
                 </Text>
               </View>
             </View>
@@ -339,17 +365,17 @@ export default function HomeScreen() {
               <View style={[styles.statBox, { backgroundColor: '#EEF2FF' }]}>
                 <FontAwesome5 iconStyle="solid" name="users" size={20} color="#6366F1" />
                 <Text style={styles.statNum}>{adminSummary?.totalUsers ?? '--'}</Text>
-                <Text style={styles.statLbl}>Total</Text>
+                <Text style={styles.statLbl}>{t('stat_total')}</Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: '#D1FAE5' }]}>
                 <FontAwesome5 iconStyle="solid" name="sign-in-alt" size={20} color="#10B981" />
                 <Text style={styles.statNum}>{todayCheckInCount}</Text>
-                <Text style={styles.statLbl}>Check In</Text>
+                <Text style={styles.statLbl}>{t('stat_check_in')}</Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: '#FEE2E2' }]}>
                 <FontAwesome5 iconStyle="solid" name="sign-out-alt" size={20} color="#EF4444" />
                 <Text style={styles.statNum}>{todayCheckOutCount}</Text>
-                <Text style={styles.statLbl}>Check Out</Text>
+                <Text style={styles.statLbl}>{t('stat_check_out')}</Text>
               </View>
             </>
           ) : (
@@ -357,17 +383,17 @@ export default function HomeScreen() {
               <View style={[styles.statBox, { backgroundColor: '#EEF2FF' }]}>
                 <FontAwesome5 iconStyle="solid" name="clock" size={20} color="#6366F1" />
                 <Text style={styles.statNum}>{scanCount}</Text>
-                <Text style={styles.statLbl}>Scans</Text>
+                <Text style={styles.statLbl}>{t('stat_scans')}</Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: '#D1FAE5' }]}>
                 <FontAwesome5 iconStyle="solid" name="sign-in-alt" size={20} color="#10B981" />
                 <Text style={styles.statNum}>{checkIn?.time ?? '--'}</Text>
-                <Text style={styles.statLbl}>Check In</Text>
+                <Text style={styles.statLbl}>{t('stat_check_in')}</Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: '#FEE2E2' }]}>
                 <FontAwesome5 iconStyle="solid" name="sign-out-alt" size={20} color="#EF4444" />
                 <Text style={styles.statNum}>{checkOut?.time ?? '--'}</Text>
-                <Text style={styles.statLbl}>Check Out</Text>
+                <Text style={styles.statLbl}>{t('stat_check_out')}</Text>
               </View>
             </>
           )}
@@ -387,7 +413,7 @@ export default function HomeScreen() {
                 <View style={[styles.cardIconBox, { backgroundColor: '#EEF2FF' }]}>
                   <FontAwesome5 iconStyle="solid" name="file-alt" size={18} color="#6366F1" />
                 </View>
-                <Text style={styles.cardTitle}>Pending Leave Requests</Text>
+                <Text style={styles.cardTitle}>{t('admin_pending_leave')}</Text>
                 {pendingLeaves.length > 0 && (
                   <View style={[styles.adminBadge, { backgroundColor: '#FEF3C7' }]}>
                     <Text style={[styles.adminBadgeTxt, { color: '#F59E0B' }]}>{pendingLeaves.length}</Text>
@@ -400,7 +426,7 @@ export default function HomeScreen() {
               ) : pendingLeaves.length === 0 ? (
                 <View style={styles.adminEmpty}>
                   <FontAwesome5 iconStyle="solid" name="check-circle" size={28} color="#10B981" />
-                  <Text style={styles.adminEmptyTxt}>No pending requests</Text>
+                  <Text style={styles.adminEmptyTxt}>{t('admin_no_pending')}</Text>
                 </View>
               ) : (
                 pendingLeaves.slice(0, 5).map((item, i) => (
@@ -413,7 +439,7 @@ export default function HomeScreen() {
                       <Text style={styles.adminRowSub}>{(item as any).leaveType?.name ?? item.type}  ·  {fmtLeaveDate(item.startDate)} – {fmtLeaveDate(item.endDate)}</Text>
                     </View>
                     <View style={[styles.adminBadge, { backgroundColor: '#FEF3C7' }]}>
-                      <Text style={[styles.adminBadgeTxt, { color: '#F59E0B' }]}>Pending</Text>
+                      <Text style={[styles.adminBadgeTxt, { color: '#F59E0B' }]}>{t('admin_pending_badge')}</Text>
                     </View>
                   </View>
                 ))
@@ -423,7 +449,7 @@ export default function HomeScreen() {
                   style={styles.adminSeeAll}
                   onPress={() => navigation.navigate('Manage', { screen: 'ManageDetail', params: { section: 'LeaveRequests', title: 'Leave Requests' } })}
                 >
-                  <Text style={styles.adminSeeAllTxt}>See all {pendingLeaves.length} requests</Text>
+                  <Text style={styles.adminSeeAllTxt}>{t('admin_see_all')} {pendingLeaves.length} {t('admin_requests')}</Text>
                   <FontAwesome5 iconStyle="solid" name="arrow-right" size={13} color="#6366F1" />
                 </TouchableOpacity>
               )}
@@ -439,7 +465,7 @@ export default function HomeScreen() {
                 <View style={[styles.cardIconBox, { backgroundColor: '#D1FAE5' }]}>
                   <FontAwesome5 iconStyle="solid" name="qrcode" size={18} color="#10B981" />
                 </View>
-                <Text style={styles.cardTitle}>Today's Check-Ins</Text>
+                <Text style={styles.cardTitle}>{t('admin_today_checkins')}</Text>
                 <View style={[styles.adminBadge, { backgroundColor: '#D1FAE5' }]}>
                   <Text style={[styles.adminBadgeTxt, { color: '#10B981' }]}>{adminSummary?.checkedIn ?? 0}</Text>
                 </View>
@@ -450,23 +476,23 @@ export default function HomeScreen() {
               ) : (adminSummary?.checkedIn ?? 0) === 0 ? (
                 <View style={styles.adminEmpty}>
                   <FontAwesome5 iconStyle="solid" name="clock" size={28} color="#CBD5E1" />
-                  <Text style={styles.adminEmptyTxt}>No check-ins yet today</Text>
+                  <Text style={styles.adminEmptyTxt}>{t('admin_no_checkins')}</Text>
                 </View>
               ) : (
                 <View style={styles.adminCheckInSummary}>
                   <View style={styles.adminCheckInItem}>
                     <Text style={[styles.adminCheckInNum, { color: '#10B981' }]}>{adminSummary?.checkedIn}</Text>
-                    <Text style={styles.adminCheckInLbl}>Checked In</Text>
+                    <Text style={styles.adminCheckInLbl}>{t('admin_checked_in')}</Text>
                   </View>
                   <View style={styles.adminCheckInDivider} />
                   <View style={styles.adminCheckInItem}>
                     <Text style={[styles.adminCheckInNum, { color: '#EF4444' }]}>{adminSummary?.notCheckedIn}</Text>
-                    <Text style={styles.adminCheckInLbl}>Not Yet</Text>
+                    <Text style={styles.adminCheckInLbl}>{t('admin_not_yet')}</Text>
                   </View>
                   <View style={styles.adminCheckInDivider} />
                   <View style={styles.adminCheckInItem}>
                     <Text style={[styles.adminCheckInNum, { color: '#6366F1' }]}>{adminSummary?.totalUsers}</Text>
-                    <Text style={styles.adminCheckInLbl}>Total</Text>
+                    <Text style={styles.adminCheckInLbl}>{t('stat_total')}</Text>
                   </View>
                 </View>
               )}
@@ -482,7 +508,7 @@ export default function HomeScreen() {
                 <View style={[styles.cardIconBox, { backgroundColor: '#FFEDD5' }]}>
                   <FontAwesome5 iconStyle="solid" name="briefcase" size={18} color="#F97316" />
                 </View>
-                <Text style={styles.cardTitle}>Pending Daily Work</Text>
+                <Text style={styles.cardTitle}>{t('admin_pending_daily_work')}</Text>
                 {pendingDailyWorks.length > 0 && (
                   <View style={[styles.adminBadge, { backgroundColor: '#FFEDD5' }]}>
                     <Text style={[styles.adminBadgeTxt, { color: '#F97316' }]}>{pendingDailyWorks.length}</Text>
@@ -495,7 +521,7 @@ export default function HomeScreen() {
               ) : pendingDailyWorks.length === 0 ? (
                 <View style={styles.adminEmpty}>
                   <FontAwesome5 iconStyle="solid" name="check-circle" size={28} color="#10B981" />
-                  <Text style={styles.adminEmptyTxt}>No pending daily work</Text>
+                  <Text style={styles.adminEmptyTxt}>{t('admin_no_pending_work')}</Text>
                 </View>
               ) : (
                 pendingDailyWorks.slice(0, 5).map((item, i) => {
@@ -514,7 +540,7 @@ export default function HomeScreen() {
                         <Text style={styles.adminRowSub} numberOfLines={1}>{item.description ?? 'No description'}</Text>
                       </View>
                       <View style={[styles.adminBadge, { backgroundColor: '#FEF3C7' }]}>
-                        <Text style={[styles.adminBadgeTxt, { color: '#F59E0B' }]}>Pending</Text>
+                        <Text style={[styles.adminBadgeTxt, { color: '#F59E0B' }]}>{t('admin_pending_badge')}</Text>
                       </View>
                     </View>
                   )
@@ -525,7 +551,7 @@ export default function HomeScreen() {
                   style={styles.adminSeeAll}
                   onPress={() => navigation.navigate('Manage', { screen: 'ManageDetail', params: { section: 'DailyWork', title: 'Daily Work' } })}
                 >
-                  <Text style={styles.adminSeeAllTxt}>See all {pendingDailyWorks.length} records</Text>
+                  <Text style={styles.adminSeeAllTxt}>{t('admin_see_all')} {pendingDailyWorks.length} {t('admin_records')}</Text>
                   <FontAwesome5 iconStyle="solid" name="arrow-right" size={13} color="#6366F1" />
                 </TouchableOpacity>
               )}
@@ -541,7 +567,7 @@ export default function HomeScreen() {
               <View style={[styles.cardIconBox, { backgroundColor: '#EEF2FF' }]}>
                 <FontAwesome5 iconStyle="solid" name="umbrella" size={18} color="#6366F1" />
               </View>
-              <Text style={styles.cardTitle}>Leave Balance {monthly.year}</Text>
+              <Text style={styles.cardTitle}>{t('leave_balance')} {monthly.year}</Text>
               <View style={[
                 styles.leaveBadge,
                 { backgroundColor: monthly.leaveBalance.remainingDays > 0 ? '#D1FAE5' : '#FEE2E2' },
@@ -550,7 +576,7 @@ export default function HomeScreen() {
                   styles.leaveBadgeTxt,
                   { color: monthly.leaveBalance.remainingDays > 0 ? '#10B981' : '#EF4444' },
                 ]}>
-                  {monthly.leaveBalance.remainingDays}d left
+                  {monthly.leaveBalance.remainingDays}{t('leave_days_left')}
                 </Text>
               </View>
             </View>
@@ -576,38 +602,38 @@ export default function HomeScreen() {
             <View style={styles.leaveRow}>
               <View style={styles.leaveStat}>
                 <Text style={styles.leaveStatNum}>{monthly.leaveBalance.totalHolidayDays}</Text>
-                <Text style={styles.leaveStatLbl}>Total</Text>
+                <Text style={styles.leaveStatLbl}>{t('leave_total')}</Text>
               </View>
               <View style={styles.leaveDivider} />
               <View style={styles.leaveStat}>
                 <Text style={[styles.leaveStatNum, { color: '#EF4444' }]}>{monthly.leaveBalance.usedPermissionDays}</Text>
-                <Text style={styles.leaveStatLbl}>Used</Text>
+                <Text style={styles.leaveStatLbl}>{t('leave_used')}</Text>
               </View>
               {monthly.leaveBalance.pendingPermissionDays > 0 && (
                 <>
                   <View style={styles.leaveDivider} />
                   <View style={styles.leaveStat}>
                     <Text style={[styles.leaveStatNum, { color: '#F59E0B' }]}>{monthly.leaveBalance.pendingPermissionDays}</Text>
-                    <Text style={styles.leaveStatLbl}>Pending</Text>
+                    <Text style={styles.leaveStatLbl}>{t('leave_pending')}</Text>
                   </View>
                 </>
               )}
               <View style={styles.leaveDivider} />
               <View style={styles.leaveStat}>
                 <Text style={[styles.leaveStatNum, { color: '#10B981' }]}>{monthly.leaveBalance.remainingDays}</Text>
-                <Text style={styles.leaveStatLbl}>Remaining</Text>
+                <Text style={styles.leaveStatLbl}>{t('leave_remaining')}</Text>
               </View>
             </View>
           </View>
         )}
         {/* ── Today's Activity (employee only) ── */}
         {!isAdmin && <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Today's Activity</Text>
+          <Text style={styles.sectionTitle}>{t('todays_activity')}</Text>
           {todayCheckIns.length === 0 ? (
             <View style={styles.emptyBox}>
               <FontAwesome5 iconStyle="solid" name="calendar-alt" size={40} color="#CBD5E1" />
-              <Text style={styles.emptyTitle}>No activity yet</Text>
-              <Text style={styles.emptyText}>Tap the Scan tab to check in</Text>
+              <Text style={styles.emptyTitle}>{t('no_activity')}</Text>
+              <Text style={styles.emptyText}>{t('tap_scan_checkin')}</Text>
             </View>
           ) : (
             <View style={styles.timeline}>
@@ -627,12 +653,12 @@ export default function HomeScreen() {
                         />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.timelineType}>{ci.scanType === 'check_in' ? 'Check In' : 'Check Out'}</Text>
+                        <Text style={styles.timelineType}>{ci.scanType === 'check_in' ? t('check_in') : t('check_out')}</Text>
                         <Text style={styles.timelineTime}>{ci.time}</Text>
                       </View>
                       <View style={[styles.badge, { backgroundColor: ci.scanType === 'check_in' ? '#D1FAE5' : '#FEE2E2' }]}>
                         <Text style={[styles.badgeTxt, { color: ci.scanType === 'check_in' ? '#10B981' : '#EF4444' }]}>
-                          {ci.scanType === 'check_in' ? 'IN' : 'OUT'}
+                          {ci.scanType === 'check_in' ? t('check_in').toUpperCase() : t('check_out').toUpperCase()}
                         </Text>
                       </View>
                     </View>
@@ -648,7 +674,7 @@ export default function HomeScreen() {
             <View style={[styles.cardIconBox, { backgroundColor: '#FFEDD5' }]}>
               <FontAwesome5 iconStyle="solid" name="briefcase" size={18} color="#F97316" />
             </View>
-            <Text style={styles.cardTitle}>Daily Work</Text>
+            <Text style={styles.cardTitle}>{t('daily_work')}</Text>
             <View style={styles.dwMonthBadge}>
               <Text style={styles.dwMonthBadgeTxt}>{MONTH_NAMES[now.getMonth()]}</Text>
             </View>
@@ -662,7 +688,7 @@ export default function HomeScreen() {
           {dailyWorks.length === 0 ? (
             <View style={styles.dwEmpty}>
               <FontAwesome5 iconStyle="solid" name="briefcase" size={28} color="#CBD5E1" />
-              <Text style={styles.dwEmptyTxt}>No records this month</Text>
+              <Text style={styles.dwEmptyTxt}>{t('no_records_this_month')}</Text>
             </View>
           ) : (
             <FlatList
@@ -688,17 +714,20 @@ const styles = StyleSheet.create({
 
   // App Bar
   appBar: { backgroundColor: '#6366F1', paddingTop: 52, paddingHorizontal: 20, paddingBottom: 20 },
-  appBarInner: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
+  appBarInner: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
   appBarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  greeting: { fontSize: 14, color: 'rgba(255,255,255,0.75)', fontWeight: '500' },
-  name: { fontSize: 22, fontWeight: '800', color: '#fff', marginTop: 2 },
+  greeting: { fontSize: 16, color: 'rgba(255,255,255,0.75)', fontWeight: '500' },
+  name: { fontSize: 16, fontWeight: '800', color: '#fff' },
   datePill: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
   dateText: { fontSize: 12, color: 'rgba(255,255,255,0.65)' },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)' },
+  langBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)' },
+  langBtnFlag: { fontSize: 22 },
   notifDot: { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 1.5, borderColor: '#6366F1' },
   notifBadge: { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1.5, borderColor: '#6366F1' },
   notifBadgeTxt: { fontSize: 9, fontWeight: '800', color: '#fff' },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
+  avatar:    { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', flexShrink: 0 },
+  avatarImg: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', flexShrink: 0 },
   avatarTxt: { fontSize: 17, fontWeight: '800', color: '#fff' },
   statusPill: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   statusPillIn: { backgroundColor: 'rgba(16,185,129,0.15)' },

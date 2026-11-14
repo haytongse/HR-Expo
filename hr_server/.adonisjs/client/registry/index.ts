@@ -132,6 +132,30 @@ const routes = {
     tokens: [{"old":"/api/v1/daily-works","type":0,"val":"api","end":""},{"old":"/api/v1/daily-works","type":0,"val":"v1","end":""},{"old":"/api/v1/daily-works","type":0,"val":"daily-works","end":""}],
     types: placeholder as Registry['daily_works.store']['types'],
   },
+  'user_notes.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/notes',
+    tokens: [{"old":"/api/v1/notes","type":0,"val":"api","end":""},{"old":"/api/v1/notes","type":0,"val":"v1","end":""},{"old":"/api/v1/notes","type":0,"val":"notes","end":""}],
+    types: placeholder as Registry['user_notes.index']['types'],
+  },
+  'user_notes.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/notes',
+    tokens: [{"old":"/api/v1/notes","type":0,"val":"api","end":""},{"old":"/api/v1/notes","type":0,"val":"v1","end":""},{"old":"/api/v1/notes","type":0,"val":"notes","end":""}],
+    types: placeholder as Registry['user_notes.store']['types'],
+  },
+  'user_notes.update': {
+    methods: ["PUT"],
+    pattern: '/api/v1/notes/:id',
+    tokens: [{"old":"/api/v1/notes/:id","type":0,"val":"api","end":""},{"old":"/api/v1/notes/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/notes/:id","type":0,"val":"notes","end":""},{"old":"/api/v1/notes/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['user_notes.update']['types'],
+  },
+  'user_notes.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/notes/:id',
+    tokens: [{"old":"/api/v1/notes/:id","type":0,"val":"api","end":""},{"old":"/api/v1/notes/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/notes/:id","type":0,"val":"notes","end":""},{"old":"/api/v1/notes/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['user_notes.destroy']['types'],
+  },
   'leave_types.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/leave-types',

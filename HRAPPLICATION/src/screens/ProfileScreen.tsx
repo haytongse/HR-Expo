@@ -16,6 +16,7 @@ import { version } from '../../package.json'
 import { navigationRef } from '../navigation/navigationRef'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker'
+import { useLanguage } from '../i18n/LanguageContext'
 
 const HEADER_EXPANDED = 220
 const HEADER_COLLAPSED = 70
@@ -43,6 +44,7 @@ function InfoRow({ icon, label, value, iconBg, iconColor }: InfoRowProps) {
 
 function ProfileContent() {
   const { user, signOut } = useAuthViewModel()
+  const { t } = useLanguage()
   const dispatch = useDispatch()
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
@@ -134,17 +136,17 @@ function ProfileContent() {
   const pickProfilePicture = () => {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
-        { options: ['Cancel', 'Take Photo', 'Choose from Library'], cancelButtonIndex: 0 },
+        { options: [t('btn_cancel'), t('profile_camera'), t('profile_gallery')], cancelButtonIndex: 0 },
         (idx) => {
           if (idx === 1) launchCam()
           if (idx === 2) launchLib()
         }
       )
     } else {
-      Alert.alert('Profile Photo', 'Choose source', [
-        { text: 'Camera', onPress: launchCam },
-        { text: 'Library', onPress: launchLib },
-        { text: 'Cancel', style: 'cancel' },
+      Alert.alert(t('profile_change_photo'), '', [
+        { text: t('profile_camera'), onPress: launchCam },
+        { text: t('profile_gallery'), onPress: launchLib },
+        { text: t('btn_cancel'), style: 'cancel' },
       ])
     }
   }
@@ -172,7 +174,7 @@ function ProfileContent() {
 
   const birthdayLabel = editBirthday
     ? editBirthday.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-    : 'Not set'
+    : t('profile_not_set')
 
   return (
     <View style={styles.container}>
@@ -230,30 +232,30 @@ function ProfileContent() {
         {/* Personal Information */}
         <View style={styles.card}>
           <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>Personal Information</Text>
+            <Text style={styles.cardTitle}>{t('profile_personal_info')}</Text>
             <TouchableOpacity style={styles.editBtn} onPress={openEdit} activeOpacity={0.7}>
               <FontAwesome5 iconStyle="solid" name="edit" size={12} color="#6366F1" />
-              <Text style={styles.editBtnTxt}>Edit</Text>
+              <Text style={styles.editBtnTxt}>{t('profile_edit')}</Text>
             </TouchableOpacity>
           </View>
-          <InfoRow icon="envelope"       label="Email"    value={user?.email}       iconBg="#EEF2FF" iconColor="#6366F1" />
+          <InfoRow icon="envelope"       label="Email"                    value={user?.email}       iconBg="#EEF2FF" iconColor="#6366F1" />
           <View style={styles.sep} />
-          <InfoRow icon="phone"          label="Phone"    value={user?.phoneNumber} iconBg="#D1FAE5" iconColor="#10B981" />
+          <InfoRow icon="phone"          label={t('profile_phone')}       value={user?.phoneNumber} iconBg="#D1FAE5" iconColor="#10B981" />
           <View style={styles.sep} />
-          <InfoRow icon="map-marker-alt" label="Address"  value={user?.address}     iconBg="#FEF3C7" iconColor="#F59E0B" />
+          <InfoRow icon="map-marker-alt" label={t('profile_address')}     value={user?.address}     iconBg="#FEF3C7" iconColor="#F59E0B" />
           <View style={styles.sep} />
-          <InfoRow icon="calendar-alt"   label="Birthday" value={user?.birthOfDate} iconBg="#FEE2E2" iconColor="#EF4444" />
+          <InfoRow icon="calendar-alt"   label={t('profile_birthday')}    value={user?.birthOfDate} iconBg="#FEE2E2" iconColor="#EF4444" />
         </View>
 
         {/* Account */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Account</Text>
+          <Text style={styles.cardTitle}>{t('profile_account')}</Text>
           <View style={styles.infoRow}>
             <View style={[styles.infoIcon, { backgroundColor: '#EEF2FF' }]}>
               <FontAwesome5 iconStyle="solid" name="id-card" size={18} color="#6366F1" />
             </View>
             <View style={styles.infoRowText}>
-              <Text style={styles.infoLabel}>Role</Text>
+              <Text style={styles.infoLabel}>{t('profile_role')}</Text>
               <Text style={styles.infoVal}>{isAdmin ? 'Administrator' : 'Employee'}</Text>
             </View>
             <View style={[styles.statusChip, { backgroundColor: user?.status === 'active' ? '#D1FAE5' : '#F1F5F9' }]}>
@@ -270,8 +272,21 @@ function ProfileContent() {
               <FontAwesome5 iconStyle="solid" name="clock" size={18} color="#6366F1" />
             </View>
             <View style={styles.infoRowText}>
-              <Text style={styles.infoLabel}>Attendance</Text>
-              <Text style={styles.infoVal}>My Check-ins</Text>
+              <Text style={styles.infoLabel}>{t('profile_my_checkins')}</Text>
+              <Text style={styles.infoVal}>{t('profile_my_checkins')}</Text>
+            </View>
+            <FontAwesome5 iconStyle="solid" name="chevron-right" size={18} color="#CBD5E1" />
+          </TouchableOpacity>
+
+          <View style={styles.sep} />
+
+          <TouchableOpacity style={styles.infoRow} onPress={() => navigation.navigate('MyNotes')} activeOpacity={0.7}>
+            <View style={[styles.infoIcon, { backgroundColor: '#FEF3C7' }]}>
+              <FontAwesome5 iconStyle="solid" name="sticky-note" size={18} color="#F59E0B" />
+            </View>
+            <View style={styles.infoRowText}>
+              <Text style={styles.infoLabel}>{t('profile_my_notes')}</Text>
+              <Text style={styles.infoVal}>{t('profile_my_notes')}</Text>
             </View>
             <FontAwesome5 iconStyle="solid" name="chevron-right" size={18} color="#CBD5E1" />
           </TouchableOpacity>
@@ -283,8 +298,8 @@ function ProfileContent() {
               <FontAwesome5 iconStyle="solid" name="file-alt" size={18} color="#F59E0B" />
             </View>
             <View style={styles.infoRowText}>
-              <Text style={styles.infoLabel}>Leave</Text>
-              <Text style={styles.infoVal}>My Requests</Text>
+              <Text style={styles.infoLabel}>{t('profile_leave')}</Text>
+              <Text style={styles.infoVal}>{t('profile_leave')}</Text>
             </View>
             <FontAwesome5 iconStyle="solid" name="chevron-right" size={18} color="#CBD5E1" />
           </TouchableOpacity>
@@ -296,8 +311,8 @@ function ProfileContent() {
               <FontAwesome5 iconStyle="solid" name="briefcase" size={18} color="#F97316" />
             </View>
             <View style={styles.infoRowText}>
-              <Text style={styles.infoLabel}>Work</Text>
-              <Text style={styles.infoVal}>Daily Work</Text>
+              <Text style={styles.infoLabel}>{t('profile_daily_work')}</Text>
+              <Text style={styles.infoVal}>{t('profile_daily_work')}</Text>
             </View>
             <FontAwesome5 iconStyle="solid" name="chevron-right" size={18} color="#CBD5E1" />
           </TouchableOpacity>
@@ -308,7 +323,7 @@ function ProfileContent() {
           <View style={styles.signOutIcon}>
             <FontAwesome5 iconStyle="solid" name="sign-out-alt" size={20} color="#EF4444" />
           </View>
-          <Text style={styles.signOutTxt}>Sign Out</Text>
+          <Text style={styles.signOutTxt}>{t('profile_logout')}</Text>
           <FontAwesome5 iconStyle="solid" name="chevron-right" size={18} color="#EF4444" />
         </TouchableOpacity>
 
@@ -328,11 +343,11 @@ function ProfileContent() {
             <View style={styles.dialogIconWrap}>
               <FontAwesome5 iconStyle="solid" name="sign-out-alt" size={30} color="#EF4444" />
             </View>
-            <Text style={styles.dialogTitle}>Sign Out</Text>
+            <Text style={styles.dialogTitle}>{t('profile_logout')}</Text>
             <Text style={styles.dialogSub}>Are you sure you want to sign out of your account?</Text>
             <View style={styles.dialogBtns}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowSignOut(false)} activeOpacity={0.8}>
-                <Text style={styles.cancelTxt}>Cancel</Text>
+                <Text style={styles.cancelTxt}>{t('btn_cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmBtn}
@@ -343,7 +358,7 @@ function ProfileContent() {
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.confirmTxt}>Sign Out</Text>
+                <Text style={styles.confirmTxt}>{t('profile_logout')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -355,7 +370,7 @@ function ProfileContent() {
         <View style={styles.overlay}>
           <View style={styles.editDialog}>
             <View style={styles.editHeader}>
-              <Text style={styles.editTitle}>Edit Profile</Text>
+              <Text style={styles.editTitle}>{t('profile_edit_title')}</Text>
               <TouchableOpacity onPress={() => setShowEdit(false)} style={styles.editClose}>
                 <FontAwesome5 iconStyle="solid" name="times" size={16} color="#64748B" />
               </TouchableOpacity>
@@ -363,18 +378,18 @@ function ProfileContent() {
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Full Name</Text>
+                <Text style={styles.fieldLabel}>{t('profile_name')}</Text>
                 <TextInput
                   style={styles.fieldInput}
                   value={editName}
                   onChangeText={setEditName}
-                  placeholder="Your full name"
+                  placeholder={t('profile_name')}
                   placeholderTextColor="#CBD5E1"
                 />
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Phone Number</Text>
+                <Text style={styles.fieldLabel}>{t('profile_phone')}</Text>
                 <TextInput
                   style={styles.fieldInput}
                   value={editPhone}
@@ -386,19 +401,19 @@ function ProfileContent() {
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Address</Text>
+                <Text style={styles.fieldLabel}>{t('profile_address')}</Text>
                 <TextInput
                   style={[styles.fieldInput, { height: 72, textAlignVertical: 'top' }]}
                   value={editAddress}
                   onChangeText={setEditAddress}
-                  placeholder="Your address"
+                  placeholder={t('profile_address')}
                   placeholderTextColor="#CBD5E1"
                   multiline
                 />
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>Birthday</Text>
+                <Text style={styles.fieldLabel}>{t('profile_birthday')}</Text>
                 <TouchableOpacity
                   style={[styles.fieldInput, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
                   onPress={() => setShowDatePicker(true)}
@@ -421,7 +436,7 @@ function ProfileContent() {
                 )}
                 {showDatePicker && Platform.OS === 'ios' && (
                   <TouchableOpacity style={styles.doneBtn} onPress={() => setShowDatePicker(false)}>
-                    <Text style={styles.doneBtnTxt}>Done</Text>
+                    <Text style={styles.doneBtnTxt}>{t('notes_save')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -429,12 +444,12 @@ function ProfileContent() {
 
             <View style={styles.editActions}>
               <TouchableOpacity style={styles.editCancelBtn} onPress={() => setShowEdit(false)} activeOpacity={0.8}>
-                <Text style={styles.editCancelTxt}>Cancel</Text>
+                <Text style={styles.editCancelTxt}>{t('profile_cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.editSaveBtn} onPress={saveProfile} activeOpacity={0.8} disabled={saving}>
                 {saving
                   ? <ActivityIndicator size="small" color="#fff" />
-                  : <Text style={styles.editSaveTxt}>Save</Text>
+                  : <Text style={styles.editSaveTxt}>{t('profile_save')}</Text>
                 }
               </TouchableOpacity>
             </View>
