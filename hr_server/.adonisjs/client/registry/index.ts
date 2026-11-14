@@ -36,6 +36,18 @@ const routes = {
     tokens: [{"old":"/api/v1/account/profile","type":0,"val":"api","end":""},{"old":"/api/v1/account/profile","type":0,"val":"v1","end":""},{"old":"/api/v1/account/profile","type":0,"val":"account","end":""},{"old":"/api/v1/account/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['profile.profile.show']['types'],
   },
+  'profile.profile.update': {
+    methods: ["PUT"],
+    pattern: '/api/v1/account/profile',
+    tokens: [{"old":"/api/v1/account/profile","type":0,"val":"api","end":""},{"old":"/api/v1/account/profile","type":0,"val":"v1","end":""},{"old":"/api/v1/account/profile","type":0,"val":"account","end":""},{"old":"/api/v1/account/profile","type":0,"val":"profile","end":""}],
+    types: placeholder as Registry['profile.profile.update']['types'],
+  },
+  'profile.profile.update_profile_picture': {
+    methods: ["POST"],
+    pattern: '/api/v1/account/profile-picture',
+    tokens: [{"old":"/api/v1/account/profile-picture","type":0,"val":"api","end":""},{"old":"/api/v1/account/profile-picture","type":0,"val":"v1","end":""},{"old":"/api/v1/account/profile-picture","type":0,"val":"account","end":""},{"old":"/api/v1/account/profile-picture","type":0,"val":"profile-picture","end":""}],
+    types: placeholder as Registry['profile.profile.update_profile_picture']['types'],
+  },
   'profile.profile.my_shift': {
     methods: ["GET","HEAD"],
     pattern: '/api/v1/account/my-shift',

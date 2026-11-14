@@ -404,10 +404,15 @@ export default function CheckInsScreen() {
                       {index + 1}
                     </Text>
                     {/* Employee */}
-                    <View style={[styles.cellEmployee, { width: COL_EMPLOYEE }]}>
+                    <TouchableOpacity
+                      style={[styles.cellEmployee, { width: COL_EMPLOYEE }]}
+                      activeOpacity={0.6}
+                      onPress={() => navigation.navigate('ManageDetail', { section: 'Users', title: 'Users', highlightUserId: item.uid })}
+                    >
                       <View style={[styles.avatarDot, { backgroundColor: color }]} />
                       <Text style={[styles.rowName, status !== 'present' && { color: '#94A3B8' }]} numberOfLines={1}>{item.name}</Text>
-                    </View>
+                      <FontAwesome5 iconStyle="solid" name="chevron-right" size={8} color="#CBD5E1" style={{ marginLeft: 2 }} />
+                    </TouchableOpacity>
                     {/* Date */}
                     <View style={[styles.cellCenter, { width: COL_DATE }]}>
                       <Text style={[styles.dateDay, dow === 0 || dow === 6 ? { color: '#EF4444' } : null]}>

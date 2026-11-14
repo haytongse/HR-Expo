@@ -58,6 +58,22 @@ export const authService = {
     return res.data
   },
 
+  async updateProfile(data: {
+    full_name?: string
+    phone_number?: string
+    address?: string
+    birth_of_date?: string
+  }): Promise<{ fullName: string | null; phoneNumber: string | null; address: string | null; birthOfDate: string | null; profilePicture: string | null }> {
+    const res = await api.put('/account/profile', data)
+    return res.data.data ?? res.data
+  },
+
+  async updateProfilePicture(base64: string): Promise<string> {
+    const res = await api.post('/account/profile-picture', { photo_base64: base64 })
+    const d = res.data.data ?? res.data
+    return d.profilePicture
+  },
+
   async registerFcmToken(fcmToken: string): Promise<void> {
     try {
       await api.put('/account/fcm-token', { fcm_token: fcmToken })

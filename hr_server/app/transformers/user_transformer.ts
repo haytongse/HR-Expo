@@ -15,6 +15,7 @@ export default class UserTransformer extends BaseTransformer<User> {
         'phoneNumber',
         'address',
         'birthOfDate',
+        'profilePicture',
         'createdAt',
         'updatedAt',
         'initials',

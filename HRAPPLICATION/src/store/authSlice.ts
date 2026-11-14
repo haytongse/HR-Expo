@@ -14,6 +14,7 @@ interface User {
   birthOfDate?: string | null
   campusId?: number | null
   status?: string | null
+  profilePicture?: string | null
 }
 
 interface AuthState {

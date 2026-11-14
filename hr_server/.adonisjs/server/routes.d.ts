@@ -9,6 +9,8 @@ export type ScannedRoutes = {
     'auth.access_token.admin_login': { paramsTuple?: []; params?: {} }
     'auth.access_token.destroy': { paramsTuple?: []; params?: {} }
     'profile.profile.show': { paramsTuple?: []; params?: {} }
+    'profile.profile.update': { paramsTuple?: []; params?: {} }
+    'profile.profile.update_profile_picture': { paramsTuple?: []; params?: {} }
     'profile.profile.my_shift': { paramsTuple?: []; params?: {} }
     'profile.profile.update_fcm_token': { paramsTuple?: []; params?: {} }
     'check_ins.index': { paramsTuple?: []; params?: {} }
@@ -153,6 +155,7 @@ export type ScannedRoutes = {
     'auth.access_token.store': { paramsTuple?: []; params?: {} }
     'auth.access_token.admin_login': { paramsTuple?: []; params?: {} }
     'auth.access_token.destroy': { paramsTuple?: []; params?: {} }
+    'profile.profile.update_profile_picture': { paramsTuple?: []; params?: {} }
     'check_ins.store': { paramsTuple?: []; params?: {} }
     'user_permissions.store': { paramsTuple?: []; params?: {} }
     'daily_works.store': { paramsTuple?: []; params?: {} }
@@ -173,6 +176,7 @@ export type ScannedRoutes = {
     'admin.admin_document_numbering.undo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PUT: {
+    'profile.profile.update': { paramsTuple?: []; params?: {} }
     'profile.profile.update_fcm_token': { paramsTuple?: []; params?: {} }
     'admin.admin_users.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_timetables.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

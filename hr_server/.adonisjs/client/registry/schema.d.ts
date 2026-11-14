@@ -67,6 +67,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['show']>>>
     }
   }
+  'profile.profile.update': {
+    methods: ["PUT"]
+    pattern: '/api/v1/account/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['update']>>>
+    }
+  }
+  'profile.profile.update_profile_picture': {
+    methods: ["POST"]
+    pattern: '/api/v1/account/profile-picture'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['updateProfilePicture']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/profile_controller').default['updateProfilePicture']>>>
+    }
+  }
   'profile.profile.my_shift': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/account/my-shift'

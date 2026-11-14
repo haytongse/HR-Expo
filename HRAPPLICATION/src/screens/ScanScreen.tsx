@@ -16,6 +16,7 @@ import { attendanceService } from '../services/attendanceService'
 import { authService } from '../services/authService'
 import { Campus } from '../models'
 import { Toast } from '../components/Toast'
+import { AppAlert, useAlert } from '../components/AppAlert'
 import FontAwesome5 from '@react-native-vector-icons/fontawesome5'
 import type { RootState } from '../store'
 import { updateUser } from '../store/authSlice'
@@ -146,9 +147,7 @@ export default function ScanScreen() {
   const navigation = useNavigation<any>()
   const [scanning, setScanning] = useState(false)
   const [torchOn, setTorchOn] = useState(false)
-  const [zoom, setZoom] = useState(1)
   const scanLineAnim = useRef(new Animated.Value(0)).current
-  const zoomAnim = useRef(new Animated.Value(1)).current
   const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null)
   const [campuses, setCampuses] = useState<Campus[]>([])
   const [campusesError, setCampusesError] = useState(false)
@@ -162,6 +161,8 @@ export default function ScanScreen() {
   const [wifiSsid, setWifiSsid] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [checkInError, setCheckInError] = useState<string | null>(null)
+
+  const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
 
   const currentUser = useSelector((state: RootState) => state.auth.user)
   const dispatch = useDispatch()
@@ -221,7 +222,6 @@ export default function ScanScreen() {
     return navigation.addListener('blur', () => {
       setScanning(false)
       setTorchOn(false)
-      setZoom(1)
       setSelectedCampus(null)
       setAlertMsg(null)
     })
@@ -230,9 +230,6 @@ export default function ScanScreen() {
   useEffect(() => {
     if (!scanning) {
       scanLineAnim.stopAnimation()
-      zoomAnim.stopAnimation()
-      zoomAnim.setValue(1)
-      setZoom(1)
       return
     }
 
@@ -245,22 +242,8 @@ export default function ScanScreen() {
     )
     lineLoop.start()
 
-    // Auto zoom in/out animation (1.0x -> 1.8x -> 1.0x)
-    const listenerId = zoomAnim.addListener(({ value }) => setZoom(value))
-    const zoomLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(zoomAnim, { toValue: 1.8, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
-        Animated.timing(zoomAnim, { toValue: 1.0, duration: 3000, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
-      ])
-    )
-    zoomLoop.start()
-
-    return () => {
-      lineLoop.stop()
-      zoomLoop.stop()
-      zoomAnim.removeListener(listenerId)
-    }
-  }, [scanning, scanLineAnim, zoomAnim])
+    return () => { lineLoop.stop() }
+  }, [scanning, scanLineAnim])
 
   const getCheckType = (): 'check_in' | 'check_out' => {
     if (currentUser?.noCheckOut) return 'check_in'
@@ -316,20 +299,8 @@ export default function ScanScreen() {
     setCheckInError(null)
   }
 
-  const handleCheckIn = async () => {
-    if (submitting) return
-    if (!selectedCampus) { Toast.warning('Please scan or select a campus first'); return }
-    if (!location.latitude || !location.longitude) { Toast.warning('Location not available. Tap refresh.'); return }
-    if (selectedCampus.wifis && selectedCampus.wifis.length > 0 && !currentUser?.allowWifi && !currentUser?.allowOutside && !currentUser?.noCheckOut) {
-      const matched = wifiSsid && selectedCampus.wifis.some(
-        w => w.wifiName.trim().toLowerCase() === wifiSsid.trim().toLowerCase()
-      )
-      if (!matched) {
-        const names = selectedCampus.wifis.map(w => `"${w.wifiName.trim()}"`).join(', ')
-        Toast.error(`Connect to campus WiFi to check in. Allowed: ${names}`)
-        return
-      }
-    }
+  const doCheckIn = async () => {
+    if (!selectedCampus || !location.latitude || !location.longitude) return
     setSubmitting(true)
     setCheckInError(null)
     try {
@@ -357,6 +328,35 @@ export default function ScanScreen() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleCheckIn = () => {
+    if (submitting) return
+    if (!selectedCampus) { Toast.warning('Please scan or select a campus first'); return }
+    if (!location.latitude || !location.longitude) { Toast.warning('Location not available. Tap refresh.'); return }
+    if (selectedCampus.wifis && selectedCampus.wifis.length > 0 && !currentUser?.allowWifi && !currentUser?.allowOutside && !currentUser?.noCheckOut) {
+      const matched = wifiSsid && selectedCampus.wifis.some(
+        w => w.wifiName.trim().toLowerCase() === wifiSsid.trim().toLowerCase()
+      )
+      if (!matched) {
+        const names = selectedCampus.wifis.map(w => `"${w.wifiName.trim()}"`).join(', ')
+        Toast.error(`Connect to campus WiFi to check in. Allowed: ${names}`)
+        return
+      }
+    }
+    const type = swStatus.kind === 'open' ? swStatus.scanType : getCheckType()
+    const isIn = type === 'check_in'
+    showConfirm({
+      title: isIn ? 'Confirm Check In' : 'Confirm Check Out',
+      message: `${isIn ? 'Check in' : 'Check out'} at ${selectedCampus.fullName}?`,
+      icon: isIn ? 'sign-in-alt' : 'sign-out-alt',
+      iconColor: isIn ? '#10B981' : '#EF4444',
+      iconBg: isIn ? '#D1FAE5' : '#FEE2E2',
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        { text: isIn ? 'Check In' : 'Check Out', onPress: doCheckIn },
+      ],
+    })
   }
 
   const distance = location.latitude != null && location.longitude != null && selectedCampus?.lat != null && selectedCampus?.long != null
@@ -394,15 +394,9 @@ export default function ScanScreen() {
     if (!myShift.shift) return { kind: 'no_shift' }
     if (currentUser?.noCheckOut) return { kind: 'exempt' }
 
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    const { startDate, endDate } = myShift.shift
-    if (startDate && endDate && (todayStr < startDate.slice(0, 10) || todayStr > endDate.slice(0, 10))) {
-      return { kind: 'no_schedule' }
-    }
-
     const { allowTimeBefore, allowTimeAfter, allowAmountScan } = myShift.shift
-    const todayDow = now.getDay() // 0=Sun, 1=Mon … 6=Sat
-    const entries = myShift.timetables.filter(e => e.dayOfWeek === todayDow)
+    // Server already pre-filters timetables by today's day-of-week, so use them directly
+    const entries = myShift.timetables
     if (entries.length === 0) return { kind: 'no_schedule' }
 
     const lastEntry = entries[entries.length - 1]
@@ -561,7 +555,6 @@ export default function ScanScreen() {
           style={StyleSheet.absoluteFill}
           facing="back"
           enableTorch={torchOn}
-          zoom={(zoom - 1) / 0.8}
           barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
           onBarcodeScanned={(e) => handleScan(e.data)}
         />
@@ -944,6 +937,7 @@ export default function ScanScreen() {
           </View>
         )}
       </View>
+      <AppAlert {...confirmProps} />
     </View>
   )
 }

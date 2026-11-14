@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import ProfileScreen from '../screens/ProfileScreen'
 import MyLeaveScreen from '../screens/MyLeaveScreen'
 import DailyWorkScreen from '../screens/DailyWorkScreen'
+import MyCheckInsScreen from '../screens/MyCheckInsScreen'
 const Stack = createStackNavigator()
 
 export default function ProfileStackNavigator() {
@@ -13,6 +14,7 @@ export default function ProfileStackNavigator() {
         <Stack.Screen name="ProfileMenu" component={ProfileScreen} />
         <Stack.Screen name="MyLeave" component={MyLeaveScreen} />
         <Stack.Screen name="DailyWork" component={DailyWorkScreen} />
+        <Stack.Screen name="MyCheckIns" component={MyCheckInsScreen} />
       </Stack.Navigator>
     </SafeAreaProvider>
   )

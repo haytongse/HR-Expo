@@ -15,6 +15,8 @@ export interface ApiDefinition {
   profile: {
     profile: {
       show: typeof routes['profile.profile.show']
+      update: typeof routes['profile.profile.update']
+      updateProfilePicture: typeof routes['profile.profile.update_profile_picture']
       myShift: typeof routes['profile.profile.my_shift']
       updateFcmToken: typeof routes['profile.profile.update_fcm_token']
     }

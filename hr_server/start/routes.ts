@@ -53,6 +53,8 @@ router
     router
       .group(() => {
         router.get('/profile', [controllers.Profile, 'show'])
+        router.put('/profile', [controllers.Profile, 'update' as any])
+        router.post('/profile-picture', [controllers.Profile, 'updateProfilePicture' as any])
         router.get('/my-shift', [controllers.Profile, 'myShift' as any])
         router.put('/fcm-token', [controllers.Profile, 'updateFcmToken'])
       })

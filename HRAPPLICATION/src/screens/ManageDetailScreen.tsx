@@ -430,7 +430,7 @@ function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) =
 }
 
 // ─── Users Section ────────────────────────────────────────────────────────────
-function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => void }) {
+function UsersSection({ onRegisterAdd, highlightUserId }: { onRegisterAdd?: (fn: () => void) => void; highlightUserId?: number }) {
   const { users, isLoading, loadUsers, createUser, updateUser, deleteUser, campuses, loadCampuses, shifts, loadShifts, assignUserToShift } = useAdminViewModel()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
   const { showAlert: showAssignConfirm, alertProps: assignConfirmProps } = useAlert()
@@ -483,6 +483,13 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
       setCheckInUserIds(ids)
     }).catch(() => {})
   }, [])
+  useEffect(() => {
+    if (highlightUserId && users.length > 0) {
+      const target = users.find(u => u.id === highlightUserId)
+      if (target) onEdit(target)
+    }
+  }, [highlightUserId, users])
+
   useEffect(() => {
     onRegisterAdd?.(() => {
       setEditingUser(null)
@@ -2437,7 +2444,7 @@ export default function ManageDetailScreen() {
   const route = useRoute<any>()
   const navigation = useNavigation<any>()
   const insets = useSafeAreaInsets()
-  const { section, title } = route.params as { section: string; title: string }
+  const { section, title, highlightUserId } = route.params as { section: string; title: string; highlightUserId?: number }
   const [addFn, setAddFn] = useState<(() => void) | null>(null)
 
   const registerAdd = useCallback((fn: () => void) => {
@@ -2447,7 +2454,7 @@ export default function ManageDetailScreen() {
   const renderContent = () => {
     switch (section) {
       case 'Campuses':       return <CampusesSection onRegisterAdd={registerAdd} />
-      case 'Users':          return <UsersSection onRegisterAdd={registerAdd} />
+      case 'Users':          return <UsersSection onRegisterAdd={registerAdd} highlightUserId={highlightUserId} />
       case 'Timetable':      return <TimetableSection onRegisterAdd={registerAdd} />
       case 'PublicHoliday':  return <PublicHolidaySection onRegisterAdd={registerAdd} />
       case 'LeaveRequests':  return <LeaveRequestsSection />

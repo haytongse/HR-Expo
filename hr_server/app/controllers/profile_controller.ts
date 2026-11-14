@@ -5,6 +5,8 @@ import TimeTable from '#models/time_table'
 import ShiftSchedule from '#models/shift_schedule'
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
+import { join } from 'node:path'
+import { writeFile, mkdir } from 'node:fs/promises'
 
 export default class ProfileController {
   async show({ auth, serialize }: HttpContext) {
@@ -51,6 +53,37 @@ export default class ProfileController {
         dayOfWeek: t.dayOfWeek,
       })),
     })
+  }
+
+  async update({ auth, request, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const body = request.only(['full_name', 'phone_number', 'address', 'birth_of_date'])
+    if (body.full_name     !== undefined) user.fullName    = body.full_name     ? String(body.full_name)     : null
+    if (body.phone_number  !== undefined) user.phoneNumber = body.phone_number  ? String(body.phone_number)  : null
+    if (body.address       !== undefined) user.address     = body.address       ? String(body.address)       : null
+    if (body.birth_of_date !== undefined) (user as any).birthOfDate = body.birth_of_date ? String(body.birth_of_date) : null
+    await user.save()
+    return response.ok({
+      fullName: user.fullName,
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      birthOfDate: (user as any).birthOfDate,
+      profilePicture: (user as any).profilePicture,
+    })
+  }
+
+  async updateProfilePicture({ auth, request, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const base64 = request.input('photo_base64')
+    if (!base64) return response.badRequest({ message: 'photo_base64 is required' })
+    const dir = join(process.cwd(), 'public', 'profiles')
+    await mkdir(dir, { recursive: true })
+    const filename = `${user.id}_${Date.now()}.jpg`
+    const buffer = Buffer.from(String(base64).replace(/^data:image\/\w+;base64,/, ''), 'base64')
+    await writeFile(join(dir, filename), buffer)
+    ;(user as any).profilePicture = `/profiles/${filename}`
+    await user.save()
+    return response.ok({ profilePicture: (user as any).profilePicture })
   }
 
   async updateFcmToken({ auth, request, response }: HttpContext) {

@@ -6,6 +6,15 @@ export const attendanceService = {
     return res.data.data ?? res.data
   },
 
+  async getCheckIns(year?: number, month?: number) {
+    const params: Record<string, number> = {}
+    if (year)  params.year  = year
+    if (month) params.month = month
+    const res = await api.get('/check-ins', { params })
+    const d = res.data.data ?? res.data
+    return Array.isArray(d) ? d : (d?.data ?? [])
+  },
+
   async getMonthlySummary(year?: number, month?: number) {
     const params: Record<string, number> = {}
     if (year)  params.year  = year
