@@ -17,6 +17,7 @@ export const controllers = {
     Timetables: () => import('#controllers/admin/timetables_controller'),
     UserPermissions: () => import('#controllers/admin/user_permissions_controller'),
     Users: () => import('#controllers/admin/users_controller'),
+    DocumentNumbering: () => import('#controllers/admin/document_numbering_controller'),
   },
   Announcements: () => import('#controllers/announcements_controller'),
   Campuses: () => import('#controllers/campuses_controller'),

@@ -4,8 +4,12 @@ import TimeTable from '#models/time_table'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class ShiftSchedulesController {
-  async index({ response }: HttpContext) {
-    const shifts = await ShiftSchedule.query().orderBy('created_at', 'desc')
+  async index({ auth, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
+    const query = ShiftSchedule.query().orderBy('created_at', 'desc')
+    if (campusId !== null) query.where('campus_id', campusId)
+    const shifts = await query
     return response.ok(shifts)
   }
 
@@ -22,7 +26,8 @@ export default class ShiftSchedulesController {
       'allowTimeBefore', 'allowTimeAfter',
       'allowAmountScan', 'allowTimeSecondScan',
     ])
-    const shift = await ShiftSchedule.create({ ...data, createdBy: user.id })
+    const campusId = user.campusId ? Number(user.campusId) : null
+    const shift = await ShiftSchedule.create({ ...data, createdBy: user.id, campusId })
     return response.created(shift)
   }
 

@@ -24,11 +24,12 @@ async function savePhotos(base64List: string[]): Promise<string[]> {
 }
 
 export default class AnnouncementsController {
-  async index({ response }: HttpContext) {
-    const announcements = await Announcement.query()
-      .preload('photos')
-      .preload('createdByUser')
-      .orderBy('created_at', 'desc')
+  async index({ auth, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
+    const query = Announcement.query().preload('photos').preload('createdByUser').orderBy('created_at', 'desc')
+    if (campusId !== null) query.where('campus_id', campusId)
+    const announcements = await query
     return response.ok(announcements)
   }
 
@@ -40,12 +41,14 @@ export default class AnnouncementsController {
 
     if (!title) return response.badRequest({ message: 'Title is required' })
 
+    const campusId = user.campusId ? Number(user.campusId) : null
     const announcement = await Announcement.create({
       title: String(title),
       body: body ? String(body) : null,
       scheduledAt: scheduled_at ? DateTime.fromISO(String(scheduled_at)).toUTC() : null,
       createdBy: Number(user.id),
-    })
+      campusId,
+    } as any)
 
     const base64List: string[] = Array.isArray(photos_base64) ? photos_base64 : []
     if (base64List.length > 0) {

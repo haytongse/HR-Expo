@@ -8,13 +8,16 @@ export default class AnnouncementsController {
     const user = auth.getUserOrFail()
     const nowUtc = DateTime.now().toUTC()
 
-    const announcements = await Announcement.query()
+    const campusId = user.campusId ?? null
+    const announcementsQuery = Announcement.query()
       .preload('photos')
       .preload('createdByUser')
       .where((q) => {
         q.whereNull('scheduled_at').orWhere('scheduled_at', '<=', nowUtc.toSQL()!)
       })
       .orderBy('created_at', 'desc')
+    if (campusId !== null) announcementsQuery.where('campus_id', campusId)
+    const announcements = await announcementsQuery
 
     // Fetch which ones the user has already read
     const reads = await db
@@ -36,7 +39,8 @@ export default class AnnouncementsController {
     const user = auth.getUserOrFail()
     const nowUtc = DateTime.now().toUTC()
 
-    const unreadRows = await Announcement.query()
+    const campusId = user.campusId ?? null
+    const unreadQuery = Announcement.query()
       .where((q) => {
         q.whereNull('scheduled_at').orWhere('scheduled_at', '<=', nowUtc.toSQL()!)
       })
@@ -45,7 +49,8 @@ export default class AnnouncementsController {
         db.from('announcement_reads').where('user_id', user.id).select('announcement_id')
       )
       .count('* as total')
-      .first()
+    if (campusId !== null) unreadQuery.where('campus_id', campusId)
+    const unreadRows = await unreadQuery.first()
 
     const unread = Number((unreadRows as any)?.$extras?.total ?? 0)
 

@@ -26,7 +26,8 @@ const MENU_ITEMS: MenuItem[] = [
   { key: 'LeaveRequests',  label: 'Leave Requests',   subtitle: 'Review & approve leaves',    icon: 'file-alt',  iconColor: '#0EA5E9', iconBg: '#E0F2FE' },
   { key: 'DailyWork',      label: 'Daily Work',       subtitle: 'Monitor daily activities',   icon: 'briefcase',      iconColor: '#F97316', iconBg: '#FFEDD5' },
   { key: 'CheckIns',       label: 'Check-ins',        subtitle: 'View attendance records',    icon: 'qrcode',           iconColor: '#14B8A6', iconBg: '#CCFBF1' },
-  { key: 'Announcements',  label: 'Announcements',    subtitle: 'Post team announcements',    icon: 'bullhorn',      iconColor: '#6366F1', iconBg: '#EEF2FF' },
+  { key: 'Announcements',     label: 'Announcements',       subtitle: 'Post team announcements',       icon: 'bullhorn',  iconColor: '#6366F1', iconBg: '#EEF2FF' },
+  { key: 'DocumentNumbering', label: 'Document Numbering',  subtitle: 'Auto-number employee codes',    icon: 'hashtag',   iconColor: '#0EA5E9', iconBg: '#E0F2FE' },
 ]
 
 export default function ManageScreen() {
@@ -58,7 +59,7 @@ export default function ManageScreen() {
 
       {/* Menu List */}
       <ScrollView
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.group}>

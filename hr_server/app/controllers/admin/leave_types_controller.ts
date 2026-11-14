@@ -2,8 +2,12 @@ import LeaveType from '#models/leave_type'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class AdminLeaveTypesController {
-  async index({ response }: HttpContext) {
-    const types = await LeaveType.query().orderBy('created_at', 'asc')
+  async index({ auth, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
+    const query = LeaveType.query().orderBy('created_at', 'asc')
+    if (campusId !== null) query.where('campus_id', campusId)
+    const types = await query
     return response.ok({ data: types.map(lt => this.serialize(lt)) })
   }
 
@@ -21,7 +25,9 @@ export default class AdminLeaveTypesController {
     }
   }
 
-  async store({ request, response }: HttpContext) {
+  async store({ auth, request, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ? Number(admin.campusId) : null
     const d = request.only(['name', 'maxDays', 'max_days', 'amount', 'description', 'status'])
     if (!d.name) return response.badRequest({ message: 'name is required' })
     const rawAmount = d.maxDays ?? d.max_days ?? d.amount
@@ -29,7 +35,8 @@ export default class AdminLeaveTypesController {
       name: String(d.name).trim(),
       amount: rawAmount != null ? Number(rawAmount) : 0,
       status: d.status === 'inactive' ? 'inactive' : 'active',
-    })
+      campusId,
+    } as any)
     return response.created({ data: this.serialize(leaveType) })
   }
 

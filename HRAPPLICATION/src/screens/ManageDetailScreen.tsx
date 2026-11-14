@@ -19,6 +19,7 @@ import { AppAlert, useAlert } from '../components/AppAlert'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import * as DocumentPicker from 'expo-document-picker'
 import { exportToExcel, importFromExcel, campusTemplate, userTemplate } from '../utils/excelUtils'
+import { documentNumberingService, DocNumberConfig } from '../services/documentNumberingService'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -52,6 +53,7 @@ const ph = StyleSheet.create({
 function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => void }) {
   const { campuses, isLoading, loadCampuses, createCampus, updateCampus, deleteCampus, addCampusWifi, deleteCampusWifi } = useAdminViewModel()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
   const [modal, setModal]           = useState(false)
   const [editCampusId, setEditCampusId] = useState<number | null>(null)
   const [wifiInput, setWifiInput]   = useState('')
@@ -96,6 +98,20 @@ function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) =
     setCode(''); setPublicId(''); setFullName(''); setAddress(''); setPhone('')
     setEmail(''); setWebsite(''); setDescription(''); setAllowMeter(''); setLat(''); setLong('')
     setIsActive(true); setWifiInput(''); setWifiList([])
+  }
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle',
+      iconColor: '#F59E0B',
+      iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setEditCampusId(null); resetForm() } },
+      ],
+    })
   }
 
   const openEdit = (item: typeof campuses[0]) => {
@@ -320,24 +336,24 @@ function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) =
       />
 
       {/* Create / Edit Campus Modal */}
-      <Modal visible={modal} transparent animationType="slide" onRequestClose={() => { setModal(false); setEditCampusId(null); resetForm() }}>
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
         <View style={s.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
-          <View style={[s.sheet, { maxHeight: '90%' }]}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
             <View style={s.sheetHeaderRow}>
               <Text style={s.sheetTitle}>{editCampusId != null ? 'Edit Campus' : 'New Campus'}</Text>
-              <TouchableOpacity onPress={() => { setModal(false); resetForm() }} style={s.sheetCloseBtn}>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
                 <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <AppInput label="Code *" placeholder="e.g. HQ" value={code} onChangeText={setCode} leftIcon="barcode-outline" />
+              <AppInput label="Code *" placeholder="e.g. HQ" value={code} onChangeText={setCode} leftIcon="barcode" />
               <AppInput label="Full Name *" placeholder="Campus full name" value={fullName} onChangeText={setFullName} leftIcon="building" />
-              <AppInput label="Public ID" placeholder="Unique public identifier (optional)" value={publicId} onChangeText={setPublicId} leftIcon="finger-print-outline" />
+              <AppInput label="Public ID" placeholder="Unique public identifier (optional)" value={publicId} onChangeText={setPublicId} leftIcon="fingerprint" />
               <AppInput label="Address" placeholder="Street address" value={address} onChangeText={setAddress} leftIcon="map-marker-alt" />
               <AppInput label="Phone Number" placeholder="+855 xx xxx xxx" value={phone} onChangeText={setPhone} keyboardType="phone-pad" leftIcon="phone" />
               <AppInput label="Email" placeholder="campus@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" leftIcon="envelope" />
-              <AppInput label="Website" placeholder="https://example.com" value={website} onChangeText={setWebsite} keyboardType="url" autoCapitalize="none" leftIcon="globe-outline" />
+              <AppInput label="Website" placeholder="https://example.com" value={website} onChangeText={setWebsite} keyboardType="url" autoCapitalize="none" leftIcon="globe" />
               <AppInput label="Description" placeholder="Optional description" value={description} onChangeText={setDescription} leftIcon="file-alt" />
               <AppInput label="Allow Radius (meters)" placeholder="e.g. 100" value={allowMeter} onChangeText={setAllowMeter} keyboardType="numeric" leftIcon="dot-circle" />
               <AppInput label="Latitude" placeholder="e.g. 11.5564" value={lat} onChangeText={setLat} keyboardType="decimal-pad" leftIcon="location-arrow" />
@@ -400,7 +416,7 @@ function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) =
               ))}
               <View style={{ height: 16 }} />
               <AppButton title={editCampusId != null ? 'Save Changes' : 'Create Campus'} onPress={onCreate} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
-              <AppButton title="Cancel" variant="danger" onPress={() => { setModal(false); setEditCampusId(null); resetForm() }} fullWidth />
+              <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
               <View style={{ height: 16 }} />
             </ScrollView>
           </View>
@@ -417,6 +433,8 @@ function CampusesSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) =
 function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => void }) {
   const { users, isLoading, loadUsers, createUser, updateUser, deleteUser, campuses, loadCampuses, shifts, loadShifts, assignUserToShift } = useAdminViewModel()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const { showAlert: showAssignConfirm, alertProps: assignConfirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
   const [modal, setModal]                   = useState(false)
   const [fullName, setFullName]             = useState('')
   const [email, setEmail]                   = useState('')
@@ -465,13 +483,47 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
       setCheckInUserIds(ids)
     }).catch(() => {})
   }, [])
-  useEffect(() => { onRegisterAdd?.(() => { setEditingUser(null); resetForm(); setModal(true) }) }, [onRegisterAdd])
+  useEffect(() => {
+    onRegisterAdd?.(() => {
+      setEditingUser(null)
+      resetForm()
+      // Auto-fill user code from document numbering if EMP rule exists
+      documentNumberingService.preview('EMP').then(code => {
+        if (code) setUserCode(code)
+      })
+      setModal(true)
+    })
+  }, [onRegisterAdd])
 
   const resetForm = () => {
     setFullName(''); setEmail(''); setPassword(''); setConfirmPassword(''); setRole('user')
     setPhone(''); setAddress(''); setBirthDate(null); setShowDOBPicker(false); setCampusId(null)
     setUserCode(''); setIsActive(true); setAllowWifi(false)
     setNoCheckOut(false); setAllowOutside(false); setShowDropdown(false)
+  }
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setEditingUser(null); resetForm() } },
+      ],
+    })
+  }
+
+  const confirmAssignClose = () => {
+    showAssignConfirm({
+      title: 'Close',
+      message: 'Are you sure you want to close?',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Stay', style: 'cancel' },
+        { text: 'Close', onPress: () => setAssignModal(false) },
+      ],
+    })
   }
 
   const err = (msg: string) => showAlert({ title: 'Error', message: msg, icon: 'exclamation-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
@@ -520,6 +572,8 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
           { text: 'Create', onPress: async () => {
             try {
               await createUser({ fullName: fullName.trim() || undefined, email: email.trim(), password, role, phoneNumber: phone.trim() || undefined, address: address.trim() || undefined, birthOfDate: birthDate ? birthDate.toISOString().split('T')[0] : undefined, campusId: campusId ?? undefined, status: isActive ? '1' : '0', userCode: userCode.trim() || undefined, allowWifi, noCheckOut, allowOutside })
+              // Increment EMP counter if the code matches the document numbering pattern
+              await documentNumberingService.consume('EMP')
               setModal(false); resetForm()
             } catch (e: any) { err(e?.response?.data?.message || e.message) }
           }},
@@ -568,7 +622,7 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
 
   const handleAssign = () => {
     if (!assignItem || !selectedShiftId) return
-    showConfirm({
+    showAssignConfirm({
       title: 'Assign Shift',
       message: `Assign shift to "${assignItem.fullName || assignItem.email}"?`,
       icon: 'layer-group',
@@ -720,20 +774,20 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
         }}
       />
       {/* New User */}
-      <Modal visible={modal} transparent animationType="slide" onRequestClose={() => { setModal(false); setEditingUser(null); resetForm() }}>
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
         <View style={s.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
-          <View style={[s.sheet, { maxHeight: '92%' }]}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
             <View style={s.sheetHeaderRow}>
               <Text style={s.sheetTitle}>{editingUser ? 'Edit User' : 'New User'}</Text>
-              <TouchableOpacity onPress={() => { setModal(false); setEditingUser(null); resetForm() }} style={s.sheetCloseBtn}>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
                 <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               {/* Employee Info */}
               <Text style={s.formSection}>Employee Info</Text>
-              <AppInput label="User Code" placeholder="e.g. EMP001" value={userCode} onChangeText={setUserCode} leftIcon="card-outline" />
+              <AppInput label="User Code" placeholder="Auto-generated" value={userCode} onChangeText={setUserCode} leftIcon="id-card" editable={!!editingUser} />
               {/* Account */}
               <Text style={s.formSection}>Account</Text>
               <AppInput label="Full Name" placeholder="Full name" value={fullName} onChangeText={setFullName} leftIcon="user" />
@@ -854,7 +908,7 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
 
               <View style={{ height: 16 }} />
               <AppButton title={editingUser ? 'Save Changes' : 'Create User'} onPress={onSubmit} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
-              <AppButton title="Cancel" variant="danger" onPress={() => { setModal(false); setEditingUser(null); resetForm() }} fullWidth />
+              <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
               <View style={{ height: 16 }} />
             </ScrollView>
           </View>
@@ -863,12 +917,13 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
         <AppAlert {...confirmProps} useModal={false} />
       </Modal>
       {/* Assign Shift Modal */}
-      <Modal visible={assignModal} transparent animationType="slide" onRequestClose={() => setAssignModal(false)}>
+      <Modal visible={assignModal} transparent animationType="slide" onRequestClose={confirmAssignClose}>
         <View style={s.overlay}>
-          <View style={[s.sheet, { maxHeight: '70%' }]}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
             <View style={s.sheetHeaderRow}>
               <Text style={s.sheetTitle}>Assign Shift</Text>
-              <TouchableOpacity onPress={() => setAssignModal(false)} style={s.sheetCloseBtn}>
+              <TouchableOpacity onPress={confirmAssignClose} style={s.sheetCloseBtn}>
                 <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
@@ -899,10 +954,12 @@ function UsersSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => v
             </ScrollView>
             <View style={{ height: 16 }} />
             <AppButton title="Assign Shift" onPress={handleAssign} loading={isLoading} fullWidth disabled={!selectedShiftId} style={{ marginBottom: 10 }} />
-            <AppButton title="Cancel" variant="danger" onPress={() => setAssignModal(false)} fullWidth />
+            <AppButton title="Cancel" variant="danger" onPress={confirmAssignClose} fullWidth />
             <View style={{ height: 16 }} />
           </View>
+          </KeyboardAvoidingView>
         </View>
+        <AppAlert {...assignConfirmProps} useModal={false} />
       </Modal>
 
       <AppAlert {...alertProps} />
@@ -951,6 +1008,7 @@ function ShiftsTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminViewMo
   const { shifts, isLoading, loadShifts, createShift, updateShift } = vm
   const { showAlert, alertProps } = useAlert()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
   const [modal, setModal]             = useState(false)
   const [editItem, setEditItem]       = useState<ShiftSchedule | null>(null)
   const [name, setName]               = useState('')
@@ -966,6 +1024,18 @@ function ShiftsTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminViewMo
 
   const toDateStr = (d: Date) => d.toISOString().split('T')[0]
   const parseDate = (s: string) => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d) }
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setEditItem(null) } },
+      ],
+    })
+  }
 
   useEffect(() => { onRegisterAdd?.(() => openCreate()) }, [onRegisterAdd])
 
@@ -1047,16 +1117,17 @@ function ShiftsTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminViewMo
         )}
       />
       <AppAlert {...alertProps} />
-      <Modal visible={modal} transparent animationType="slide" onRequestClose={() => setModal(false)}>
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
         <View style={s.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
-          <ScrollView style={s.sheet} keyboardShouldPersistTaps="handled">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
             <View style={s.sheetHeaderRow}>
               <Text style={s.sheetTitle}>{editItem ? 'Edit Shift' : 'New Shift Schedule'}</Text>
-              <TouchableOpacity onPress={() => setModal(false)} style={s.sheetCloseBtn}>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
                 <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
+          <ScrollView keyboardShouldPersistTaps="handled">
             <AppInput label="Name" placeholder="e.g. Morning Shift" value={name} onChangeText={setName} leftIcon="bookmark" />
             <TouchableOpacity style={s.dobBtn} onPress={() => { setTempStartDate(startDate ?? new Date()); setShowStart(true) }}>
               <FontAwesome5 iconStyle="solid" name="calendar-alt" size={18} color="#6366F1" />
@@ -1088,9 +1159,10 @@ function ShiftsTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminViewMo
             <AppInput label="Allow After (min)" placeholder="30" value={after} onChangeText={setAfter} keyboardType="numeric" leftIcon="clock" />
             <AppInput label="Max Scans/Day" placeholder="2" value={maxScans} onChangeText={setMaxScans} keyboardType="numeric" leftIcon="qrcode" />
             <AppButton title={editItem ? 'Save Changes' : 'Create Shift'} onPress={onSave} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
-            <AppButton title="Cancel" variant="danger" onPress={() => setModal(false)} fullWidth />
+            <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
             <View style={{ height: 16 }} />
           </ScrollView>
+          </View>
           </KeyboardAvoidingView>
         </View>
         <AppAlert {...confirmProps} useModal={false} />
@@ -1104,6 +1176,7 @@ function TimetableTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminVie
   const { timetables, shifts, isLoading, loadTimetables, createTimetable, updateTimetable } = vm
   const { showAlert, alertProps } = useAlert()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
   const [modal, setModal] = useState(false)
   const [editItem, setEditItem]         = useState<TimeTable | null>(null)
   const [shiftId, setShiftId]           = useState('')
@@ -1119,6 +1192,18 @@ function TimetableTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminVie
 
   const toTimeStr = (d: Date) => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
   const parseTime = (t: string) => { const [h, m] = t.split(':').map(Number); return new Date(2000, 0, 1, h, m) }
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setEditItem(null) } },
+      ],
+    })
+  }
 
   useEffect(() => { onRegisterAdd?.(() => { setEditItem(null); setShiftId(''); setLabel(''); setDay(1); setModal(true) }) }, [onRegisterAdd])
 
@@ -1194,11 +1279,17 @@ function TimetableTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminVie
         }}
       />
       <AppAlert {...alertProps} />
-      <Modal visible={modal} transparent animationType="slide">
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
         <View style={s.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
-          <ScrollView style={s.sheet} keyboardShouldPersistTaps="handled">
-            <Text style={[s.sheetTitle, { marginBottom: 16 }]}>{editItem ? 'Edit Timetable' : 'New Timetable'}</Text>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
+            <View style={s.sheetHeaderRow}>
+              <Text style={s.sheetTitle}>{editItem ? 'Edit Timetable' : 'New Timetable'}</Text>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
+                <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+          <ScrollView keyboardShouldPersistTaps="handled">
             {/* Shift Schedule Dropdown */}
             <Text style={s.dayLabel}>Shift Schedule</Text>
             {shifts.length === 0
@@ -1265,9 +1356,10 @@ function TimetableTab({ vm, onRegisterAdd }: { vm: ReturnType<typeof useAdminVie
               ))}
             </View>
             <AppButton title={editItem ? 'Save Changes' : 'Create'} onPress={onSave} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
-            <AppButton title="Cancel" variant="danger" onPress={() => setModal(false)} fullWidth />
+            <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
             <View style={{ height: 16 }} />
           </ScrollView>
+          </View>
           </KeyboardAvoidingView>
         </View>
         <AppAlert {...confirmProps} useModal={false} />
@@ -1283,6 +1375,7 @@ function PublicHolidaySection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => vo
   const { publicHolidays, isLoading, loadPublicHolidays, createPublicHoliday, updatePublicHoliday, deletePublicHoliday } = useAdminViewModel()
   const { showAlert, alertProps } = useAlert()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
   const [modal, setModal] = useState(false)
   const [editItem, setEditItem]         = useState<PublicHoliday | null>(null)
   const [name, setName] = useState('')
@@ -1291,6 +1384,18 @@ function PublicHolidaySection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => vo
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [amountDay, setAmountDay]     = useState('1')
   const [description, setDescription] = useState('')
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setEditItem(null); setName(''); setDate(null); setAmountDay('1'); setDescription('') } },
+      ],
+    })
+  }
 
   useEffect(() => { loadPublicHolidays() }, [])
   useEffect(() => { onRegisterAdd?.(() => { setEditItem(null); setName(''); setDate(null); setAmountDay('1'); setDescription(''); setModal(true) }) }, [onRegisterAdd])
@@ -1383,11 +1488,17 @@ function PublicHolidaySection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => vo
         )}
       />
       <AppAlert {...alertProps} />
-      <Modal visible={modal} transparent animationType="slide">
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
         <View style={s.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
-          <ScrollView style={s.sheet} keyboardShouldPersistTaps="handled">
-            <Text style={[s.sheetTitle, { marginBottom: 16 }]}>{editItem ? 'Edit Public Holiday' : 'New Public Holiday'}</Text>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
+            <View style={s.sheetHeaderRow}>
+              <Text style={s.sheetTitle}>{editItem ? 'Edit Public Holiday' : 'New Public Holiday'}</Text>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
+                <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+          <ScrollView keyboardShouldPersistTaps="handled">
             <AppInput label="Name" placeholder="e.g. New Year" value={name} onChangeText={setName} leftIcon="calendar-alt" />
             <TouchableOpacity style={s.dobBtn} onPress={() => { setTempDate(date ?? new Date()); setShowDatePicker(true) }}>
               <FontAwesome5 iconStyle="solid" name="calendar-day" size={18} color="#6366F1" />
@@ -1406,10 +1517,11 @@ function PublicHolidaySection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => vo
             )}
             <AppInput label="Amount of Days" placeholder="1" value={amountDay} onChangeText={setAmountDay} keyboardType="numeric" leftIcon="clock" />
             <AppInput label="Description (optional)" placeholder="Notes..." value={description} onChangeText={setDescription} leftIcon="file-alt" />
-            <AppButton title={editItem ? 'Save Changes' : 'Create'} onPress={onSave} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
-            <AppButton title="Cancel" variant="danger" onPress={() => setModal(false)} fullWidth />
+            <AppButton title={editItem ? 'Save Changes' : 'Create'} onPress={onSave} loading={isLoading} disabled={!name.trim() || !date} fullWidth style={{ marginBottom: 10 }} />
+            <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
             <View style={{ height: 16 }} />
           </ScrollView>
+          </View>
           </KeyboardAvoidingView>
         </View>
         <AppAlert {...confirmProps} useModal={false} />
@@ -1685,11 +1797,24 @@ function LeaveTypeSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) 
   const { leaveTypes, isLoading, loadLeaveTypes, createLeaveType, updateLeaveType, deleteLeaveType } = useAdminViewModel()
   const { showAlert, alertProps } = useAlert()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
   const [modal, setModal] = useState(false)
   const [editItem, setEditItem]   = useState<LeaveType | null>(null)
   const [name, setName] = useState('')
   const [maxDays, setMaxDays] = useState('')
   const [description, setDescription] = useState('')
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setEditItem(null); setName(''); setMaxDays(''); setDescription('') } },
+      ],
+    })
+  }
 
   useEffect(() => { loadLeaveTypes() }, [])
   useEffect(() => { onRegisterAdd?.(() => { setEditItem(null); setName(''); setMaxDays(''); setDescription(''); setModal(true) }) }, [onRegisterAdd])
@@ -1773,16 +1898,24 @@ function LeaveTypeSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) 
         )}
       />
       <AppAlert {...alertProps} />
-      <Modal visible={modal} transparent animationType="slide">
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
         <View style={s.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
-          <View style={s.sheet}>
-            <Text style={[s.sheetTitle, { marginBottom: 16 }]}>{editItem ? 'Edit Leave Type' : 'New Leave Type'}</Text>
-            <AppInput label="Name" placeholder="e.g. Annual Leave" value={name} onChangeText={setName} leftIcon="list" />
-            <AppInput label="Max Days / Year (optional)" placeholder="e.g. 12" value={maxDays} onChangeText={setMaxDays} keyboardType="numeric" leftIcon="clock" />
-            <AppInput label="Description (optional)" placeholder="Notes..." value={description} onChangeText={setDescription} leftIcon="file-alt" />
-            <AppButton title={editItem ? 'Save Changes' : 'Create'} onPress={onSave} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
-            <AppButton title="Cancel" variant="danger" onPress={() => setModal(false)} fullWidth />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
+            <View style={s.sheetHeaderRow}>
+              <Text style={s.sheetTitle}>{editItem ? 'Edit Leave Type' : 'New Leave Type'}</Text>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
+                <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <AppInput label="Name" placeholder="e.g. Annual Leave" value={name} onChangeText={setName} leftIcon="list" />
+              <AppInput label="Max Days / Year (optional)" placeholder="e.g. 12" value={maxDays} onChangeText={setMaxDays} keyboardType="numeric" leftIcon="clock" />
+              <AppInput label="Description (optional)" placeholder="Notes..." value={description} onChangeText={setDescription} leftIcon="file-alt" />
+              <AppButton title={editItem ? 'Save Changes' : 'Create'} onPress={onSave} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
+              <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
+              <View style={{ height: 16 }} />
+            </ScrollView>
           </View>
           </KeyboardAvoidingView>
         </View>
@@ -1969,9 +2102,22 @@ function AnnouncementsSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => vo
   const { announcements, isLoading, loadAnnouncements, createAnnouncement, deleteAnnouncement } = useAdminViewModel()
   const { showAlert, alertProps } = useAlert()
   const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
   const [modal, setModal] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setTitle(''); setContent('') } },
+      ],
+    })
+  }
 
   useEffect(() => { loadAnnouncements() }, [])
   useEffect(() => { onRegisterAdd?.(() => setModal(true)) }, [onRegisterAdd])
@@ -2042,15 +2188,23 @@ function AnnouncementsSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => vo
         )}
       />
       <AppAlert {...alertProps} />
-      <Modal visible={modal} transparent animationType="slide">
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
         <View style={s.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ width: '100%' }}>
-          <View style={s.sheet}>
-            <Text style={[s.sheetTitle, { marginBottom: 16 }]}>New Announcement</Text>
-            <AppInput label="Title" placeholder="Announcement title" value={title} onChangeText={setTitle} leftIcon="bullhorn" />
-            <AppInput label="Content" placeholder="Write your announcement..." value={content} onChangeText={setContent} leftIcon="file-alt" />
-            <AppButton title="Post" onPress={onCreate} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
-            <AppButton title="Cancel" variant="danger" onPress={() => setModal(false)} fullWidth />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
+            <View style={s.sheetHeaderRow}>
+              <Text style={s.sheetTitle}>New Announcement</Text>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
+                <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <AppInput label="Title" placeholder="Announcement title" value={title} onChangeText={setTitle} leftIcon="bullhorn" />
+              <AppInput label="Content" placeholder="Write your announcement..." value={content} onChangeText={setContent} leftIcon="file-alt" />
+              <AppButton title="Post" onPress={onCreate} loading={isLoading} fullWidth style={{ marginBottom: 10 }} />
+              <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
+              <View style={{ height: 16 }} />
+            </ScrollView>
           </View>
           </KeyboardAvoidingView>
         </View>
@@ -2059,6 +2213,224 @@ function AnnouncementsSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => vo
     </>
   )
 }
+
+// ─── Document Numbering Section ──────────────────────────────────────────────
+const PADDING_OPTIONS = [2, 3, 4, 5, 6]
+
+function DocumentNumberingSection({ onRegisterAdd }: { onRegisterAdd?: (fn: () => void) => void }) {
+  const { showAlert, alertProps } = useAlert()
+  const { showAlert: showConfirm, alertProps: confirmProps } = useAlert()
+  const insets = useSafeAreaInsets()
+  const [configs, setConfigs]       = useState<DocNumberConfig[]>([])
+  const [modal, setModal]           = useState(false)
+  const [editItem, setEditItem]     = useState<DocNumberConfig | null>(null)
+  const [label, setLabel]           = useState('')
+  const [prefix, setPrefix]         = useState('')
+  const [separator, setSeparator]   = useState('')
+  const [padding, setPadding]       = useState(3)
+  const [nextNumber, setNextNumber] = useState('1')
+
+  const [serverReady, setServerReady] = useState(true)
+
+  const load = useCallback(async () => {
+    try {
+      const data = await documentNumberingService.getAll()
+      setConfigs(data)
+      setServerReady(true)
+    } catch {
+      setServerReady(false)
+    }
+  }, [])
+
+  useEffect(() => { load() }, [])
+  useEffect(() => {
+    onRegisterAdd?.(() => { setEditItem(null); setLabel(''); setPrefix(''); setSeparator(''); setPadding(3); setNextNumber('1'); setModal(true) })
+  }, [onRegisterAdd])
+
+  const preview = (p: string, sep: string, pad: number, num: number) =>
+    `${p}${sep}${String(num).padStart(pad, '0')}`
+
+  const openEdit = (cfg: DocNumberConfig) => {
+    setEditItem(cfg)
+    setLabel(cfg.label)
+    setPrefix(cfg.prefix)
+    setSeparator(cfg.separator)
+    setPadding(cfg.padding)
+    setNextNumber(String(cfg.nextNumber))
+    setModal(true)
+  }
+
+  const confirmClose = () => {
+    showConfirm({
+      title: 'Discard Changes',
+      message: 'Are you sure you want to close? Any unsaved changes will be lost.',
+      icon: 'exclamation-triangle', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Keep Editing', style: 'cancel' },
+        { text: 'Discard', onPress: () => { setModal(false); setEditItem(null) } },
+      ],
+    })
+  }
+
+  const onSave = () => {
+    if (!label.trim() || !prefix.trim()) {
+      showAlert({ title: 'Missing Fields', message: 'Label and Prefix are required.', icon: 'exclamation-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
+      return
+    }
+    const id = editItem?.id ?? prefix.trim().toUpperCase()
+    const cfg: DocNumberConfig = { id, label: label.trim(), prefix: prefix.trim().toUpperCase(), separator, padding, nextNumber: Number(nextNumber) || 1 }
+    showConfirm({
+      title: editItem ? 'Save Changes' : 'Create Numbering',
+      message: `${editItem ? 'Save changes to' : 'Create'} "${cfg.label}"? Next code: ${preview(cfg.prefix, cfg.separator, cfg.padding, cfg.nextNumber)}`,
+      icon: 'hashtag', iconColor: '#6366F1', iconBg: '#EEF2FF',
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        { text: editItem ? 'Save' : 'Create', onPress: async () => {
+          try {
+            await documentNumberingService.save(cfg)
+            await load()
+            setModal(false); setEditItem(null)
+          } catch (e: any) {
+            showAlert({ title: 'Error', message: e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] })
+          }
+        }},
+      ],
+    })
+  }
+
+  const onDelete = (cfg: DocNumberConfig) => {
+    showAlert({
+      title: 'Delete', message: `Remove "${cfg.label}"?`, icon: 'trash-alt', iconColor: '#EF4444', iconBg: '#FEE2E2',
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: async () => {
+          try { await documentNumberingService.delete(cfg.id); await load() }
+          catch (e: any) { showAlert({ title: 'Error', message: e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] }) }
+        }},
+      ],
+    })
+  }
+
+  const onReset = (cfg: DocNumberConfig) => {
+    showConfirm({
+      title: 'Reset Counter', message: `Reset "${cfg.label}" counter back to 1?`,
+      icon: 'redo', iconColor: '#F59E0B', iconBg: '#FEF3C7',
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Reset', onPress: async () => {
+          try { await documentNumberingService.save({ ...cfg, nextNumber: 1 }); await load() }
+          catch (e: any) { showAlert({ title: 'Error', message: e.message, icon: 'times-circle', iconColor: '#EF4444', iconBg: '#FEE2E2', buttons: [{ text: 'OK' }] }) }
+        }},
+      ],
+    })
+  }
+
+  return (
+    <>
+      {!serverReady && (
+        <View style={dnStyles.notReadyBanner}>
+          <FontAwesome5 iconStyle="solid" name="exclamation-triangle" size={14} color="#92400E" />
+          <Text style={dnStyles.notReadyText}>Backend endpoint not ready. Implement{'\n'}<Text style={{ fontWeight: '700' }}>GET /admin/document-numbering</Text> on your server.</Text>
+        </View>
+      )}
+      <View style={s.sectionBar}>
+        <Text style={s.sectionCount}>{configs.length} numbering rule{configs.length !== 1 ? 's' : ''}</Text>
+      </View>
+      <FlatList
+        data={configs}
+        keyExtractor={i => i.id}
+        contentContainerStyle={s.list}
+        ListEmptyComponent={<Text style={s.empty}>No document numbering rules yet.{'\n'}Tap + to create one (e.g. EMP for Employee Codes).</Text>}
+        renderItem={({ item }) => (
+          <View style={s.listItem}>
+            <View style={s.rowItem}>
+              <View style={[s.iconBox, { backgroundColor: '#EEF2FF' }]}>
+                <FontAwesome5 iconStyle="solid" name="hashtag" size={20} color="#6366F1" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.itemTitle}>{item.label}</Text>
+                <Text style={s.itemSub}>Prefix: <Text style={{ fontWeight: '700', color: '#6366F1' }}>{item.prefix}{item.separator}</Text> · Digits: {item.padding}</Text>
+                <Text style={[s.itemSub, { color: '#10B981', fontWeight: '700', marginTop: 2 }]}>
+                  Next: {preview(item.prefix, item.separator, item.padding, item.nextNumber)}
+                </Text>
+              </View>
+              <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                <TouchableOpacity onPress={() => openEdit(item)} style={s.editBtn}>
+                  <FontAwesome5 iconStyle="solid" name="edit" size={16} color="#6366F1" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => onReset(item)} style={s.editBtn}>
+                  <FontAwesome5 iconStyle="solid" name="redo" size={14} color="#F59E0B" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => onDelete(item)} style={s.editBtn}>
+                  <FontAwesome5 iconStyle="solid" name="trash-alt" size={14} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+      />
+      <AppAlert {...alertProps} />
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={confirmClose}>
+        <View style={s.overlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <View style={[s.sheet, { flex: 1, paddingTop: insets.top + 16 }]}>
+            <View style={s.sheetHeaderRow}>
+              <Text style={s.sheetTitle}>{editItem ? 'Edit Numbering' : 'New Numbering'}</Text>
+              <TouchableOpacity onPress={confirmClose} style={s.sheetCloseBtn}>
+                <FontAwesome5 iconStyle="solid" name="times" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <AppInput label="Label *" placeholder="e.g. Employee Code" value={label} onChangeText={setLabel} leftIcon="tag" />
+              <AppInput label="Prefix *" placeholder="e.g. EMP" value={prefix} onChangeText={t => setPrefix(t.toUpperCase())} autoCapitalize="characters" leftIcon="font" />
+              <AppInput label="Separator (optional)" placeholder="e.g. - or leave blank" value={separator} onChangeText={setSeparator} leftIcon="minus" />
+
+              <Text style={s.formSection}>Digit Padding</Text>
+              <View style={s.roleRow}>
+                {PADDING_OPTIONS.map(p => (
+                  <TouchableOpacity key={p} style={[s.roleBtn, padding === p && s.roleBtnActive]} onPress={() => setPadding(p)}>
+                    <Text style={[s.roleTxt, padding === p && s.roleTxtActive]}>{p}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <AppInput label="Start / Next Number" placeholder="1" value={nextNumber} onChangeText={setNextNumber} keyboardType="numeric" leftIcon="sort-numeric-up" />
+
+              {/* Live preview */}
+              <View style={dnStyles.previewBox}>
+                <Text style={dnStyles.previewLabel}>Preview</Text>
+                <Text style={dnStyles.previewCode}>
+                  {prefix || 'PREFIX'}{separator}{String(Number(nextNumber) || 1).padStart(padding, '0')}
+                </Text>
+              </View>
+
+              <View style={{ height: 16 }} />
+              <AppButton
+                title={editItem ? 'Save Changes' : 'Create'}
+                onPress={onSave}
+                disabled={!label.trim() || !prefix.trim()}
+                fullWidth
+                style={{ marginBottom: 10 }}
+              />
+              <AppButton title="Cancel" variant="danger" onPress={confirmClose} fullWidth />
+              <View style={{ height: 16 }} />
+            </ScrollView>
+          </View>
+          </KeyboardAvoidingView>
+        </View>
+        <AppAlert {...confirmProps} useModal={false} />
+      </Modal>
+    </>
+  )
+}
+
+const dnStyles = StyleSheet.create({
+  previewBox: { backgroundColor: '#EEF2FF', borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 8, marginBottom: 4 },
+  previewLabel: { fontSize: 11, fontWeight: '700', color: '#6366F1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 },
+  previewCode: { fontSize: 28, fontWeight: '800', color: '#6366F1', letterSpacing: 2 },
+  notReadyBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: '#FEF3C7', borderRadius: 10, margin: 16, marginBottom: 0, padding: 12 },
+  notReadyText: { flex: 1, fontSize: 12, color: '#92400E', lineHeight: 18 },
+})
 
 // ─── Main Detail Screen ───────────────────────────────────────────────────────
 export default function ManageDetailScreen() {
@@ -2082,8 +2454,9 @@ export default function ManageDetailScreen() {
       case 'LeaveType':      return <LeaveTypeSection onRegisterAdd={registerAdd} />
       case 'CheckIns':       return <ComingSoon icon="qrcode" title="Check-ins" />
       case 'DailyWork':      return <DailyWorkSection />
-      case 'Announcements':  return <AnnouncementsSection onRegisterAdd={registerAdd} />
-      default:               return <ComingSoon icon="construct-outline" title={title} />
+      case 'Announcements':     return <AnnouncementsSection onRegisterAdd={registerAdd} />
+      case 'DocumentNumbering': return <DocumentNumberingSection onRegisterAdd={registerAdd} />
+      default:                  return <ComingSoon icon="construct-outline" title={title} />
     }
   }
 

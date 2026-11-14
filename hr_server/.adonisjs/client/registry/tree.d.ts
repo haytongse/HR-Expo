@@ -120,5 +120,13 @@ export interface ApiDefinition {
       store: typeof routes['admin.admin_announcements.store']
       destroy: typeof routes['admin.admin_announcements.destroy']
     }
+    adminDocumentNumbering: {
+      index: typeof routes['admin.admin_document_numbering.index']
+      upsert: typeof routes['admin.admin_document_numbering.upsert']
+      destroy: typeof routes['admin.admin_document_numbering.destroy']
+      preview: typeof routes['admin.admin_document_numbering.preview']
+      consume: typeof routes['admin.admin_document_numbering.consume']
+      undo: typeof routes['admin.admin_document_numbering.undo']
+    }
   }
 }

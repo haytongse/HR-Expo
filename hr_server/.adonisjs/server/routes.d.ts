@@ -75,6 +75,12 @@ export type ScannedRoutes = {
     'admin.admin_announcements.index': { paramsTuple?: []; params?: {} }
     'admin.admin_announcements.store': { paramsTuple?: []; params?: {} }
     'admin.admin_announcements.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_document_numbering.upsert': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.preview': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.consume': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.undo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
@@ -106,6 +112,8 @@ export type ScannedRoutes = {
     'admin.admin_daily_works.monthly': { paramsTuple?: []; params?: {} }
     'admin.admin_leave_types.index': { paramsTuple?: []; params?: {} }
     'admin.admin_announcements.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_document_numbering.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_document_numbering.preview': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
@@ -137,6 +145,8 @@ export type ScannedRoutes = {
     'admin.admin_daily_works.monthly': { paramsTuple?: []; params?: {} }
     'admin.admin_leave_types.index': { paramsTuple?: []; params?: {} }
     'admin.admin_announcements.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_document_numbering.index': { paramsTuple?: []; params?: {} }
+    'admin.admin_document_numbering.preview': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
@@ -159,6 +169,8 @@ export type ScannedRoutes = {
     'admin.admin_public_holidays.store': { paramsTuple?: []; params?: {} }
     'admin.admin_leave_types.store': { paramsTuple?: []; params?: {} }
     'admin.admin_announcements.store': { paramsTuple?: []; params?: {} }
+    'admin.admin_document_numbering.consume': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.undo': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PUT: {
     'profile.profile.update_fcm_token': { paramsTuple?: []; params?: {} }
@@ -172,6 +184,7 @@ export type ScannedRoutes = {
     'admin.admin_daily_works.approve': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_daily_works.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_leave_types.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.upsert': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'user_permissions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -185,6 +198,7 @@ export type ScannedRoutes = {
     'admin.admin_user_permissions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_leave_types.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.admin_announcements.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.admin_document_numbering.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

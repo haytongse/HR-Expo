@@ -432,6 +432,42 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/announcements/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/announcements/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/announcements/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/announcements/:id","type":0,"val":"announcements","end":""},{"old":"/api/v1/admin/announcements/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['admin.admin_announcements.destroy']['types'],
   },
+  'admin.admin_document_numbering.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/document-numbering',
+    tokens: [{"old":"/api/v1/admin/document-numbering","type":0,"val":"api","end":""},{"old":"/api/v1/admin/document-numbering","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/document-numbering","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/document-numbering","type":0,"val":"document-numbering","end":""}],
+    types: placeholder as Registry['admin.admin_document_numbering.index']['types'],
+  },
+  'admin.admin_document_numbering.upsert': {
+    methods: ["PUT"],
+    pattern: '/api/v1/admin/document-numbering/:id',
+    tokens: [{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"document-numbering","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.admin_document_numbering.upsert']['types'],
+  },
+  'admin.admin_document_numbering.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/admin/document-numbering/:id',
+    tokens: [{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"api","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":0,"val":"document-numbering","end":""},{"old":"/api/v1/admin/document-numbering/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['admin.admin_document_numbering.destroy']['types'],
+  },
+  'admin.admin_document_numbering.preview': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/admin/document-numbering/:id/preview',
+    tokens: [{"old":"/api/v1/admin/document-numbering/:id/preview","type":0,"val":"api","end":""},{"old":"/api/v1/admin/document-numbering/:id/preview","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/document-numbering/:id/preview","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/document-numbering/:id/preview","type":0,"val":"document-numbering","end":""},{"old":"/api/v1/admin/document-numbering/:id/preview","type":1,"val":"id","end":""},{"old":"/api/v1/admin/document-numbering/:id/preview","type":0,"val":"preview","end":""}],
+    types: placeholder as Registry['admin.admin_document_numbering.preview']['types'],
+  },
+  'admin.admin_document_numbering.consume': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/document-numbering/:id/consume',
+    tokens: [{"old":"/api/v1/admin/document-numbering/:id/consume","type":0,"val":"api","end":""},{"old":"/api/v1/admin/document-numbering/:id/consume","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/document-numbering/:id/consume","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/document-numbering/:id/consume","type":0,"val":"document-numbering","end":""},{"old":"/api/v1/admin/document-numbering/:id/consume","type":1,"val":"id","end":""},{"old":"/api/v1/admin/document-numbering/:id/consume","type":0,"val":"consume","end":""}],
+    types: placeholder as Registry['admin.admin_document_numbering.consume']['types'],
+  },
+  'admin.admin_document_numbering.undo': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/document-numbering/:id/undo',
+    tokens: [{"old":"/api/v1/admin/document-numbering/:id/undo","type":0,"val":"api","end":""},{"old":"/api/v1/admin/document-numbering/:id/undo","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/document-numbering/:id/undo","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/document-numbering/:id/undo","type":0,"val":"document-numbering","end":""},{"old":"/api/v1/admin/document-numbering/:id/undo","type":1,"val":"id","end":""},{"old":"/api/v1/admin/document-numbering/:id/undo","type":0,"val":"undo","end":""}],
+    types: placeholder as Registry['admin.admin_document_numbering.undo']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

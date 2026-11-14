@@ -18,15 +18,20 @@ export default class AdminPublicHolidaysController {
     }
   }
 
-  async index({ request, response }: HttpContext) {
+  async index({ auth, request, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
     const year = request.input('year', null)
     const query = PublicHoliday.query().orderBy('date', 'asc')
     if (year) query.where('year', Number(year))
+    if (campusId !== null) query.where('campus_id', campusId)
     const holidays = await query
     return response.ok({ data: holidays.map(h => this.serialize(h)) })
   }
 
-  async store({ request, response }: HttpContext) {
+  async store({ auth, request, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ? Number(admin.campusId) : null
     const d = request.only(['name', 'date', 'amount_day', 'amountDay', 'description'])
 
     if (!d.name || !d.date) {
@@ -45,6 +50,7 @@ export default class AdminPublicHolidaysController {
       year: dt.year,
       month: dt.month,
       day: dt.day,
+      campusId,
     })
 
     return response.created({ data: this.serialize(holiday) })

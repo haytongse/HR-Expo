@@ -4,18 +4,18 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { sendPushNotification } from '#services/notification_service'
 
 export default class AdminDailyWorksController {
-  async index({ response }: HttpContext) {
-    const records = await DailyWork.query()
-      .preload('user')
-      .preload('campus')
-      .preload('approver')
-      .preload('photos')
-      .orderBy('created_at', 'desc')
-
+  async index({ auth, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
+    const query = DailyWork.query().preload('user').preload('campus').preload('approver').preload('photos').orderBy('created_at', 'desc')
+    if (campusId !== null) query.where('campus_id', campusId)
+    const records = await query
     return response.ok(records)
   }
 
-  async monthly({ request, response }: HttpContext) {
+  async monthly({ auth, request, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
     const qs    = request.qs()
     const year  = Number(Array.isArray(qs.year)  ? qs.year[0]  : qs.year)
     const month = Number(Array.isArray(qs.month) ? qs.month[0] : qs.month)
@@ -24,15 +24,12 @@ export default class AdminDailyWorksController {
       return response.badRequest({ message: 'year and month are required' })
     }
 
-    const records = await DailyWork.query()
-      .preload('user')
-      .preload('campus')
-      .preload('approver')
-      .where('year', year)
-      .where('month', month)
-      .orderBy('user_id', 'asc')
-      .orderBy('day', 'asc')
-
+    const query = DailyWork.query()
+      .preload('user').preload('campus').preload('approver')
+      .where('year', year).where('month', month)
+      .orderBy('user_id', 'asc').orderBy('day', 'asc')
+    if (campusId !== null) query.where('campus_id', campusId)
+    const records = await query
     return response.ok(records)
   }
 

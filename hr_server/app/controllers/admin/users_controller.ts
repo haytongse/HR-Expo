@@ -25,8 +25,12 @@ const serializeUser = (u: User, shiftSchedule?: any) => ({
 })
 
 export default class AdminUsersController {
-  async index({ response }: HttpContext) {
-    const users = await User.all()
+  async index({ auth, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
+    const query = User.query()
+    if (campusId !== null) query.where('campus_id', campusId)
+    const users = await query
     const assignments = await UserShiftSchedule.query().preload('shiftSchedule' as never)
     const data = users.map((u) => {
       const assignment = assignments.find((a) => a.userId === u.id)

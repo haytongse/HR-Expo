@@ -859,4 +859,76 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/announcements_controller').default['destroy']>>>
     }
   }
+  'admin.admin_document_numbering.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/document-numbering'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['index']>>>
+    }
+  }
+  'admin.admin_document_numbering.upsert': {
+    methods: ["PUT"]
+    pattern: '/api/v1/admin/document-numbering/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['upsert']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['upsert']>>>
+    }
+  }
+  'admin.admin_document_numbering.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/admin/document-numbering/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['destroy']>>>
+    }
+  }
+  'admin.admin_document_numbering.preview': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/document-numbering/:id/preview'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['preview']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['preview']>>>
+    }
+  }
+  'admin.admin_document_numbering.consume': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/document-numbering/:id/consume'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['consume']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['consume']>>>
+    }
+  }
+  'admin.admin_document_numbering.undo': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/document-numbering/:id/undo'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['undo']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/admin/document_numbering_controller').default['undo']>>>
+    }
+  }
 }

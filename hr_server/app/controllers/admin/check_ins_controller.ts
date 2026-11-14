@@ -7,7 +7,9 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 
 export default class AdminCheckInsController {
-  async index({ request, response }: HttpContext) {
+  async index({ auth, request, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
     const qs = request.qs()
     const user_id = Array.isArray(qs.user_id) ? qs.user_id[0] : qs.user_id
     const date = Array.isArray(qs.date) ? qs.date[0] : qs.date
@@ -16,6 +18,10 @@ export default class AdminCheckInsController {
     const query = CheckIn.query()
       .preload('user')
       .orderBy('created_at', 'desc')
+
+    if (campusId !== null) {
+      query.whereHas('user', (q) => q.where('campus_id', campusId))
+    }
 
     if (user_id) query.where('user_id', Number(user_id))
 
@@ -36,7 +42,9 @@ export default class AdminCheckInsController {
     return response.ok(checkIns)
   }
 
-  async monthly({ request, response }: HttpContext) {
+  async monthly({ auth, request, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
     const qs    = request.qs()
     const year  = Number(Array.isArray(qs.year)  ? qs.year[0]  : qs.year)
     const month = Number(Array.isArray(qs.month) ? qs.month[0] : qs.month)
@@ -45,13 +53,19 @@ export default class AdminCheckInsController {
       return response.badRequest({ message: 'year and month are required' })
     }
 
-    const records = await CheckIn.query()
+    const recordsQuery = CheckIn.query()
       .preload('user')
       .where('year', year)
       .where('month', month)
       .orderBy('user_id', 'asc')
       .orderBy('day', 'asc')
       .orderBy('created_at', 'asc')
+
+    if (campusId !== null) {
+      recordsQuery.whereHas('user', (q) => q.where('campus_id', campusId))
+    }
+
+    const records = await recordsQuery
 
     // Build allowAmountScan map per user from their latest shift schedule
     const userIds = [...new Set(records.map(r => r.userId).filter(Boolean))] as number[]
@@ -82,24 +96,37 @@ export default class AdminCheckInsController {
     return response.ok({ data: records, userAllowScan })
   }
 
-  async userIds({ response }: HttpContext) {
-    const rows = await db.from('check_ins').distinct('user_id').select('user_id').whereNotNull('user_id')
+  async userIds({ auth, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
+    let query = db.from('check_ins').distinct('user_id').select('user_id').whereNotNull('user_id')
+    if (campusId !== null) {
+      query = query.whereIn('user_id', db.from('users').select('id').where('campus_id', campusId))
+    }
+    const rows = await query
     const ids = rows.map((r: any) => Number(r.user_id)).filter(Boolean)
     return response.ok({ data: ids })
   }
 
-  async summary({ response }: HttpContext) {
+  async summary({ auth, response }: HttpContext) {
+    const admin = auth.getUserOrFail()
+    const campusId = admin.campusId ?? null
     const now = DateTime.now().setZone('Asia/Phnom_Penh')
 
-    const totalUsers = await User.query().where('role', 'user').count('* as total')
+    const userQuery = User.query().where('role', 'user')
+    if (campusId !== null) userQuery.where('campus_id', campusId)
+    const totalUsers = await userQuery.count('* as total')
     const total = Number((totalUsers[0] as any).$extras.total)
 
-    const checkedInToday = await CheckIn.query()
+    const checkedInQuery = CheckIn.query()
       .where('year', now.year)
       .where('month', now.month)
       .where('day', now.day)
       .where('scan_type', 'check_in')
-      .countDistinct('user_id as total')
+    if (campusId !== null) {
+      checkedInQuery.whereHas('user', (q) => q.where('campus_id', campusId))
+    }
+    const checkedInToday = await checkedInQuery.countDistinct('user_id as total')
 
     const checkedIn = Number((checkedInToday[0] as any).$extras.total)
 
